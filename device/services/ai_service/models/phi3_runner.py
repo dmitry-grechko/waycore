@@ -58,14 +58,18 @@ class Phi3Runner(ModelRunner):
     Uses 4-bit quantization (Q4_K_M) for Pi 5 compatibility.
     """
 
+    # Default context size (can be overridden via env var)
+    # 2048 saves ~500MB RAM vs 4096
+    DEFAULT_N_CTX = int(os.getenv("PHI3_CONTEXT_SIZE", "2048"))
+
     def __init__(
         self,
         model_path: str | Path | None = None,
-        n_ctx: int = 4096,
+        n_ctx: int | None = None,
         n_threads: int = 4,
     ) -> None:
         self._model_path = Path(model_path) if model_path else DEFAULT_MODEL_PATH
-        self._n_ctx = n_ctx
+        self._n_ctx = n_ctx if n_ctx is not None else self.DEFAULT_N_CTX
         self._n_threads = n_threads
         self._llm: Any = None  # Lazy loaded
         self._available: bool | None = None
@@ -90,6 +94,8 @@ class Phi3Runner(ModelRunner):
                 n_threads=self._n_threads,
                 n_gpu_layers=0,  # CPU only for Pi 5
                 verbose=False,
+                use_mmap=True,  # Memory-map model for faster startup & lower RAM
+                use_mlock=False,  # Allow swapping if needed on low-memory systems
             )
             self._available = True
             logger.info("Phi-3 model loaded successfully")

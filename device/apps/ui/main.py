@@ -7,10 +7,14 @@ Supports QML hot reload in development mode.
 
 from __future__ import annotations
 
+import logging
 import os
 import sys
 from pathlib import Path
 
+from device.apps.core.app_bridge import AppBridge
+from device.apps.core.loader import AppLoader
+from device.apps.core.registry import AppRegistry
 from PySide6.QtCore import QFileSystemWatcher, QObject, QUrl, Signal, Slot
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
@@ -20,6 +24,8 @@ from .camera_bridge import CameraBridge
 from .mesh_bridge import MeshBridge
 from .notes_bridge import NotesBridge
 from .sensor_bridge import SensorBridge
+
+logger = logging.getLogger(__name__)
 
 # Development mode settings (disable QML caching for hot reload)
 DEV_MODE = os.getenv("WAYCORE_DEV", "1") == "1"
@@ -34,6 +40,18 @@ os.environ["QT_IM_MODULE"] = "qtvirtualkeyboard"
 # Use Fusion style for cross-platform customizable controls
 # This prevents "The current style does not support customization" warnings
 os.environ["QT_QUICK_CONTROLS_STYLE"] = "Fusion"
+
+# Add Core QML module to import path for dynamically loaded apps
+# This must be set before QGuiApplication is created
+# The import path should be the parent of the Core/ directory
+_apps_dir = Path(__file__).parent.parent.resolve()
+_core_parent_dir = _apps_dir / "core"  # Contains Core/ subdirectory with qmldir
+_existing_import_path = os.environ.get("QML2_IMPORT_PATH", "")
+_core_path = str(_core_parent_dir.resolve())
+if _existing_import_path:
+    os.environ["QML2_IMPORT_PATH"] = f"{_core_path}{os.pathsep}{_existing_import_path}"
+else:
+    os.environ["QML2_IMPORT_PATH"] = _core_path
 
 
 class QmlReloader(QObject):
@@ -133,12 +151,31 @@ def main() -> int:
 
     engine = QQmlApplicationEngine()
 
+    # Discover and register modular apps
+    apps_dir = Path(__file__).parent.parent.resolve()  # device/apps/
+    app_loader = AppLoader(apps_dir)
+    app_registry = AppRegistry()
+
+    # Load all discovered apps into the registry
+    discovery_result = app_loader.discover_apps()
+    for loaded_app in discovery_result.apps:
+        app_registry.register(loaded_app)
+        logger.info(f"Registered app: {loaded_app.manifest.id}")
+
+    if discovery_result.errors:
+        for error in discovery_result.errors:
+            logger.warning(f"Failed to load app {error.app_dir.name}: {error.message}")
+
+    # Create app bridge for QML access
+    app_bridge = AppBridge(app_registry)
+
     # Create and register bridges for backend communication
     sensor_bridge = SensorBridge()
     notes_bridge = NotesBridge()
     mesh_bridge = MeshBridge()
     camera_bridge = CameraBridge()
     ai_bridge = AIBridge()
+    engine.rootContext().setContextProperty("AppBridge", app_bridge)
     engine.rootContext().setContextProperty("SensorBridge", sensor_bridge)
     engine.rootContext().setContextProperty("NotesBridge", notes_bridge)
     engine.rootContext().setContextProperty("MeshBridge", mesh_bridge)
@@ -149,8 +186,12 @@ def main() -> int:
     qml_dir = Path(__file__).parent / "qml"
     qml_dir_absolute = qml_dir.resolve()
 
-    # Add the QML directory as an import path
+    # Add QML import paths - core QML and local QML
+    # Core/ directory contains the Core module (qmldir defines "module Core")
+    core_parent_dir = apps_dir / "core"
+    engine.addImportPath(str(core_parent_dir.resolve()))
     engine.addImportPath(str(qml_dir_absolute))
+    engine.addImportPath(str(apps_dir.resolve()))  # For modular apps
 
     # Load the main QML file
     qml_file = qml_dir_absolute / "Main.qml"

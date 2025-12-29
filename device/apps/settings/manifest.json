@@ -1,0 +1,18 @@
+{
+  "id": "com.waycore.settings",
+  "name": "Settings",
+  "version": "1.0.0",
+  "description": "System settings and configuration",
+  "icon": "⚙️",
+  "category": "system",
+  "entry": {
+    "qml": "qml/SettingsMain.qml"
+  },
+  "permissions": [
+    "system.settings",
+    "system.factory_reset"
+  ],
+  "tier": 1,
+  "homePosition": 5,
+  "enabled": true
+}

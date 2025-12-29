@@ -1,0 +1,37 @@
+module Core
+
+# Theme singleton for consistent styling
+singleton Theme 1.0 Theme.qml
+
+# Core shell components
+StatusBar 1.0 StatusBar.qml
+QuickActionStrip 1.0 QuickActionStrip.qml
+Home 1.0 Home.qml
+SystemHub 1.0 SystemHub.qml
+
+# Re-export all components for convenient access
+# Import Core to get Theme, import Core.Components for UI widgets
+AppBar 1.0 components/AppBar.qml
+AppTile 1.0 components/AppTile.qml
+Avatar 1.0 components/Avatar.qml
+Badge 1.0 components/Badge.qml
+Button 1.0 components/Button.qml
+Card 1.0 components/Card.qml
+Chip 1.0 components/Chip.qml
+Dialog 1.0 components/Dialog.qml
+Divider 1.0 components/Divider.qml
+EmptyState 1.0 components/EmptyState.qml
+Icon 1.0 components/Icon.qml
+IconButton 1.0 components/IconButton.qml
+ListItem 1.0 components/ListItem.qml
+LoadingIndicator 1.0 components/LoadingIndicator.qml
+ProgressBar 1.0 components/ProgressBar.qml
+QuickAction 1.0 components/QuickAction.qml
+ScrollView 1.0 components/ScrollView.qml
+SignalBars 1.0 components/SignalBars.qml
+Slider 1.0 components/Slider.qml
+StatusIndicator 1.0 components/StatusIndicator.qml
+Switch 1.0 components/Switch.qml
+TabBar 1.0 components/TabBar.qml
+TextField 1.0 components/TextField.qml
+Toast 1.0 components/Toast.qml

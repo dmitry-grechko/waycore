@@ -1,0 +1,16 @@
+{
+  "id": "com.waycore.flashlight",
+  "name": "Flashlight",
+  "version": "1.0.0",
+  "description": "Simple flashlight toggle",
+  "icon": "🔦",
+  "category": "utilities",
+  "entry": {
+    "qml": "qml/FlashlightMain.qml"
+  },
+  "permissions": [
+    "hardware.flashlight"
+  ],
+  "tier": 2,
+  "enabled": true
+}

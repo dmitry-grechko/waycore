@@ -1,0 +1,17 @@
+{
+  "id": "com.waycore.notes",
+  "name": "Notes",
+  "version": "1.0.0",
+  "description": "Create and manage text notes with markdown formatting",
+  "icon": "📝",
+  "category": "utilities",
+  "entry": {
+    "qml": "qml/NotesMain.qml"
+  },
+  "permissions": [
+    "storage.notes"
+  ],
+  "tier": 2,
+  "homePosition": 1,
+  "enabled": true
+}

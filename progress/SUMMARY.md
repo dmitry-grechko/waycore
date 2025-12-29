@@ -1,26 +1,66 @@
 # Waycore Implementation Progress
 
-Last Updated: 2025-12-27
+Last Updated: 2025-12-29
 
 ## Overall Status
 
-| Category | Count |
-|----------|-------|
-| Total tasks | 189 |
-| TODO | 59 |
-| IN_PROGRESS | 0 |
-| COMPLETED | 130 |
-| BLOCKED | 0 |
+| Category    | Count |
+| ----------- | ----- |
+| Total tasks | 196   |
+| TODO        | 44    |
+| IN_PROGRESS | 0     |
+| COMPLETED   | 152   |
+| BLOCKED     | 0     |
 
 ## Recently Completed
+
+### Phase 18 - Modular App Ecosystem (2025-12-29)
+
+All 18 tasks complete! Major architecture refactoring to create a modular,
+self-contained app ecosystem.
+
+**Completed Tasks:**
+
+- ✅ 18.1 - App Manifest Schema & Core Types
+- ✅ 18.2 - App Loader & Registry
+- ✅ 18.3 - Core UI Component Library (24 QML components)
+- ✅ 18.4 - First App Migration (Compass)
+- ✅ 18.5 - App Backend Integration (CoreServices, SensorAPI, BridgeLoader)
+- ✅ 18.6 - Migrate Remaining Apps (9 apps total)
+- ✅ 18.7 - Status Bar Redesign (OLED-optimized)
+- ✅ 18.8 - Quick Action Strip (flashlight, comms, lock, power)
+- ✅ 18.9 - Home Grid Enhancement (all apps in main menu)
+- ✅ 18.10 - Power-Efficient Theme & Daylight Mode
+- ✅ 18.11 - App Database Access Patterns
+- ✅ 18.12 - App Development Guidelines
+- ✅ 18.13 - Recursive Factory Reset System
+- ✅ 18.14 - Scripts Directory Organization
+- ✅ 18.15 - App OpenAPI AI Tools
+- ✅ 18.16 - System Events Logging
+- ✅ 18.17 - AI Inference Logging Fix
+- ✅ 18.18 - Pi5 Memory & CPU Optimization
+
+**Key Achievements:**
+
+- Self-contained apps with manifest.json in `device/apps/*/`
+- Dynamic app discovery and loading via AppLoader/AppRegistry
+- Unified Core UI components (24 components in `device/apps/core/Core/`)
+- Sensor access API for apps
+- Database access (SharedDataReader + AppDatabase)
+- Power-efficient OLED-optimized dark theme
+- Field-ready UI (large touch targets, high contrast)
+- Comprehensive developer documentation
+- Schema-agnostic factory reset
+- QML validation tests for catching errors early
 
 ### Phase 15 - AI Application (2025-12-27)
 
 All 23 core tasks complete! New improvement task added for vision model upgrade.
 
 **Latest Completions:**
-- ✅ 15.16 - MCP OpenAPI Tools Integration (auto-generate tools from OpenAPI specs)
-- ✅ 15.23 - AI Multimodal Image+Prompt (Visual Q&A with two-stage pipeline)
+
+- ✅ 15.16 - MCP OpenAPI Tools Integration
+- ✅ 15.23 - AI Multimodal Image+Prompt
 - ✅ 15.22 - RAG MCP Tools
 - ✅ 15.21 - RAG Embedding & Indexing
 - ✅ 15.20 - RAG Parsing Pipeline
@@ -32,106 +72,99 @@ All 23 core tasks complete! New improvement task added for vision model upgrade.
 - ✅ 15.13 - MCP Sensor Tools
 - ✅ 15.11 - MCP Agent Framework
 
-**Earlier Completions:**
-- ✅ 15.1 - AI Chat Text Q&A
-- ✅ 15.2 - AI Chat History (Conversations & Messages)
-- ✅ 15.3 - AI Image Classification
-- ✅ 15.4 - AI Model Deployment (Docker + llama.cpp + TFLite)
-- ✅ 15.5 - AI Model Management
-- ✅ 15.6 - AI System Prompt Configuration
-- ✅ 15.7 - AI Thinking Indicator
-- ✅ 15.8 - AI Gallery Image Upload
-- ✅ 15.9 - AI Data Persistence
-- ✅ 15.10 - Development Scripts
-
 **Remaining (New):**
+
 - 📋 15.24 - Vision Model Improvement for Outdoor Recognition
 
 ### Phase 14 - Camera App (Complete)
+
 - ✅ 14.1-14.6 - All camera tasks complete
 
 ### Phase 13 - Meshtastic Chat (Mostly Complete)
+
 - ✅ 13.1-13.7, 13.9-13.11 - Core mesh functionality
 - 📋 13.8 - Direct Message Conversations (remaining)
 
 ## TODO Breakdown
 
-| Category | Count |
-|----------|-------|
-| Phase tasks | 37 |
-| Prod-phase tasks | 18 |
-| Improvements | 3 |
-| Ideas | 1 |
+| Category         | Count |
+| ---------------- | ----- |
+| Phase tasks      | 22    |
+| Prod-phase tasks | 18    |
+| Improvements     | 3     |
+| Ideas            | 1     |
 
-## Phase 18 - Modular App Ecosystem
+### Phase 19 - UI/UX Design
 
-A comprehensive phase to refactor the application architecture into a modular, self-contained app ecosystem with power-efficient UI.
+- 📋 19.1 - Structured UI/UX Design System (screen layouts, navigation flows,
+  component specs)
 
-| Task | Title | Priority | Dependencies |
-|------|-------|----------|--------------|
-| 18.1 | App Manifest Schema & Core Types | High | None |
-| 18.2 | App Loader & Registry | High | 18.1 |
-| 18.3 | Core UI Component Library | High | 18.1 |
-| 18.4 | First App Migration (Compass) | High | 18.1, 18.2, 18.3 |
-| 18.5 | App Backend Integration | High | 18.1, 18.2 |
-| 18.6 | Migrate Remaining Apps | Medium | 18.4, 18.5 |
-| 18.7 | Status Bar Redesign | Medium | 18.3 |
-| 18.8 | Quick Action Strip | Medium | 18.3 |
-| 18.9 | Home Grid Enhancement | Medium | 18.2, 18.6 |
-| 18.10 | Power-Efficient Theme & Daylight Mode | Medium | 18.3 |
-| 18.11 | App Database Access Patterns | High | 18.1, 18.2 |
-| 18.12 | App Development Guidelines | High | 18.1-18.11 |
-| 18.13 | Recursive Factory Reset System | High | 18.2, 18.11 |
+## Migrated Apps (Phase 18)
 
-### Goals
-- Self-contained apps with manifest.json
-- Dynamic app discovery and loading
-- Unified core components (buttons, cards, etc.)
-- Sensor access API for apps
-- Database access (shared read + app-specific storage)
-- Power-efficient OLED-optimized dark theme
-- Field-ready UI (large touch targets, high contrast)
-- Comprehensive developer documentation
-- Schema-agnostic factory reset (scales with any number of apps)
+| App        | Location                  | Category      | Tier |
+| ---------- | ------------------------- | ------------- | ---- |
+| AI         | `device/apps/ai/`         | ai            | 1    |
+| Mesh       | `device/apps/meshtastic/` | communication | 1    |
+| Settings   | `device/apps/settings/`   | system        | 1    |
+| Compass    | `device/apps/compass/`    | navigation    | 2    |
+| Notes      | `device/apps/notes/`      | utilities     | 2    |
+| Camera     | `device/apps/camera/`     | media         | 2    |
+| Gallery    | `device/apps/gallery/`    | media         | 2    |
+| Modules    | `device/apps/sensors/`    | sensors       | 2    |
+| Flashlight | `device/apps/flashlight/` | utilities     | 2    |
 
 ## Current Focus
 
-**Phase 15 AI Application is complete!** All 23 core tasks finished including:
-- MCP Agent Framework with tool confirmation dialogs
-- OpenAPI Tools auto-generation from service specs
-- Multimodal Visual Q&A (image + question → AI response)
-- RAG pipeline for outdoor knowledge and software docs
-- Legal disclaimers and safety warnings
+**Phase 18 Modular App Ecosystem is complete!** All 18 tasks finished including:
 
-**New improvement task 15.24** added for upgrading vision model from ImageNet to iNaturalist-trained model for better outdoor species recognition.
+- Modular app architecture with manifest.json
+- Dynamic app loading via AppBridge
+- Core UI component library (24 components)
+- All 9 apps migrated to new structure
+- Power-efficient OLED theme with daylight mode
+- Factory reset system
+- Developer documentation and app scaffolding
 
 ## Next Up
 
-- 📋 15.24: Vision Model Improvement - Better mushroom/plant/wildlife recognition
-- Phase 18: Modular App Ecosystem (13 tasks) - **Major Architecture Improvement**
+- 📋 19.1: Structured UI/UX Design System - Screen layouts, navigation flows,
+  component specs for 480×800 display
+- 📋 15.24: Vision Model Improvement - Better mushroom/plant/wildlife
+  recognition
+- 📋 13.8: Direct Message Conversations for Meshtastic
 - Prod-Phase 3: Production Deployment improvements
 
-## Session Notes (2025-12-27)
+## Session Notes (2025-12-29)
 
 ### Completed Today
-1. **15.16 MCP OpenAPI Tools**: Created dynamic tool generation from OpenAPI specs
-   - Parser extracts endpoints from JSON specs
-   - Generator creates MCP Tool definitions
-   - Executor makes HTTP calls with proper auth
-   - Configurable via `openapi_tools.yaml`
 
-2. **15.23 AI Multimodal Image+Prompt**: Implemented Visual Q&A
-   - New `/api/chat/multimodal` endpoint
-   - Two-stage pipeline: Vision (MobileNetV3) → LLM (Phi-3)
-   - QML UI with image attachment preview
-   - Safety warnings for plant/mushroom/wildlife
+1. **Phase 18 - All 18 Tasks**: Complete modular app ecosystem refactoring
+   - Created app manifest schema with Pydantic validation
+   - Built AppLoader for filesystem discovery
+   - Built AppRegistry for runtime app management
+   - Created 24 Core UI components
+   - Migrated 9 apps to modular structure
+   - Redesigned StatusBar, Home grid, QuickActionStrip
+   - Implemented database access patterns
+   - Created developer documentation and scaffolding script
+   - Built recursive factory reset system
+   - Added QML validation tests
 
 ### Bug Fixes Applied
-- Fixed model download URL (TFHub was returning 403)
-- Fixed NumPy 2.x compatibility with TFLite (pinned numpy<2.0)
-- Fixed preprocessing key mismatch (data/source vs image_data/image_b64)
-- Added softmax normalization for proper probability output
 
-### Infrastructure
-- Added `models/` to `.gitignore` (Docker volumes handle storage)
-- Models downloaded to local `./models/` then copied to Docker container
+- Fixed QML `id` property in ListElement (must use `appId`)
+- Fixed temperature display using wrong property (`temperatureCelsius`)
+- Fixed undefined assignments in QML components
+- Fixed uppercase IDs in QML (IconButton tooltip)
+- Fixed missing Core component properties (showBack, pressable, variant)
+- Fixed Card component height issues
+- Removed non-existent setFlashlight call
+- Fixed batterySaverEnabled scope in QuickActionStrip
+
+### Architecture Changes
+
+- Apps now live in `device/apps/{app-name}/` with `manifest.json`
+- Core components in `device/apps/core/Core/`
+- Dynamic loading via `Qt.createComponent("file:///" + path)`
+- All apps shown in single grid (no System Hub grouping)
+- Settings always appears last in app list

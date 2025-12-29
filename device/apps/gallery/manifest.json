@@ -1,0 +1,16 @@
+{
+  "id": "com.waycore.gallery",
+  "name": "Gallery",
+  "version": "1.0.0",
+  "description": "Photo gallery and viewer",
+  "icon": "🖼️",
+  "category": "media",
+  "entry": {
+    "qml": "qml/GalleryMain.qml"
+  },
+  "permissions": [
+    "storage.read"
+  ],
+  "tier": 2,
+  "enabled": true
+}

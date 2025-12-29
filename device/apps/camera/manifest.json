@@ -1,0 +1,17 @@
+{
+  "id": "com.waycore.camera",
+  "name": "Camera",
+  "version": "1.0.0",
+  "description": "Camera capture and photo management",
+  "icon": "📷",
+  "category": "media",
+  "entry": {
+    "qml": "qml/CameraMain.qml"
+  },
+  "permissions": [
+    "camera.capture",
+    "storage.write"
+  ],
+  "tier": 2,
+  "enabled": true
+}

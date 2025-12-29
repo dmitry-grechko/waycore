@@ -176,9 +176,9 @@ def create_app(service: AIService) -> FastAPI:
     async def inference(req: AIInferenceRequest) -> AIInferenceResponse:
         try:
             pre = preprocess_for_inference(req)
-            return run_inference(req, pre, response_source=service.response_source)
+            resp = run_inference(req, pre, response_source=service.response_source)
         except PreprocessingError as exc:
-            return AIInferenceResponse(
+            resp = AIInferenceResponse(
                 source=service.response_source,
                 request_id=req.msg_id,
                 inference_type=req.inference_type,
@@ -188,6 +188,15 @@ def create_app(service: AIService) -> FastAPI:
                 success=False,
                 error_message=str(exc),
             )
+
+        # Publish to MQTT for logging (data-logger captures this)
+        if service.bus:
+            try:
+                await service.bus.publish("ai/inference/response", resp.model_dump_json())
+            except Exception as e:
+                logger.warning(f"Failed to publish inference response: {e}")
+
+        return resp
 
     @app.post("/api/image/classify")
     async def image_classify(body: dict[str, Any]) -> AIInferenceResponse:
@@ -201,7 +210,16 @@ def create_app(service: AIService) -> FastAPI:
             options={},
         )
         pre = preprocess_for_inference(req)
-        return run_inference(req, pre, response_source=service.response_source)
+        resp = run_inference(req, pre, response_source=service.response_source)
+
+        # Publish to MQTT for logging
+        if service.bus:
+            try:
+                await service.bus.publish("ai/inference/response", resp.model_dump_json())
+            except Exception as e:
+                logger.warning(f"Failed to publish image classify response: {e}")
+
+        return resp
 
     @app.post("/api/chat/multimodal")
     async def chat_multimodal(body: dict[str, Any]) -> JSONResponse:
@@ -317,6 +335,13 @@ Answer:"""
         qa_pre = preprocess_for_inference(qa_req)
         qa_result = run_inference(qa_req, qa_pre, response_source=service.response_source)
 
+        # Publish to MQTT for logging
+        if service.bus:
+            try:
+                await service.bus.publish("ai/inference/response", qa_result.model_dump_json())
+            except Exception as e:
+                logger.warning(f"Failed to publish multimodal response: {e}")
+
         response_text = ""
         if qa_result.success and qa_result.results:
             response_text = qa_result.results[0].label
@@ -423,6 +448,13 @@ Answer:"""
         )
         pre = preprocess_for_inference(req)
         result = run_inference(req, pre, response_source=service.response_source)
+
+        # Publish to MQTT for logging
+        if service.bus:
+            try:
+                await service.bus.publish("ai/inference/response", result.model_dump_json())
+            except Exception as e:
+                logger.warning(f"Failed to publish chat response: {e}")
 
         # Extract response text
         response_text = ""

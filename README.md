@@ -37,6 +37,8 @@ when the UI is busy or rebooting.
 
 ## Documentation
 
+### Core Documentation
+
 | Document                                                       | Description                                                   |
 | -------------------------------------------------------------- | ------------------------------------------------------------- |
 | [Vision](docs/vision.md)                                       | Full aspirational scope and long-term direction               |
@@ -45,9 +47,34 @@ when the UI is busy or rebooting.
 | [API Reference](docs/api/)                                     | Auto-generated OpenAPI specifications for all services        |
 | [Database Schema](docs/database-schema.md)                     | Database structure, tables, and data models                   |
 | [AI Model Guide](docs/models/README.md)                        | Model management, uploads, and supported formats              |
+| [Knowledge Base](docs/knowledge-base.md)                       | RAG knowledge base for AI-powered outdoor assistance          |
 | [Progress](progress/SUMMARY.md)                                | Current implementation status and task tracking               |
+
+### Developer Guides
+
+| Document                                                       | Description                                                   |
+| -------------------------------------------------------------- | ------------------------------------------------------------- |
+| [App Development Guide](docs/developer/app-development-guide.md) | Complete guide to building Waycore apps                     |
+| [App Manifest Schema](docs/developer/app-manifest.md)          | Manifest configuration and validation reference               |
+| [App Backend Integration](docs/developer/app-backend.md)       | Building Python backend services for apps                     |
+| [UI Components](docs/developer/ui-components.md)               | Core UI component library and theme system                    |
 | [Local Development](docs/local_dev_docker.md)                  | Docker-based development setup and workflows                  |
 | [IPC Guide](local_plan/12-ipc-implementation-guide.md.md)      | Inter-process communication strategy                          |
+
+### User Manual
+
+| Document                                                       | Description                                                   |
+| -------------------------------------------------------------- | ------------------------------------------------------------- |
+| [User Manual](docs/manual/README.md)                           | Complete user documentation and app guides                    |
+| [Getting Started](docs/manual/getting-started.md)              | First-time setup and home screen overview                     |
+| [AI Assistant](docs/manual/apps/ai-assistant.md)               | Using the AI for outdoor knowledge and image analysis         |
+| [Troubleshooting](docs/manual/reference/troubleshooting.md)    | Common issues and solutions                                   |
+
+### Legal
+
+| Document                                                       | Description                                                   |
+| -------------------------------------------------------------- | ------------------------------------------------------------- |
+| [AI Disclaimer](docs/legal/ai-disclaimer.md)                   | Important AI limitations and safety information               |
 | [Third-Party Attributions](docs/legal/third-party-attributions.md) | Licenses and attributions for dependencies and data sources  |
 
 ## Quick Start

@@ -1,0 +1,23 @@
+{
+  "id": "com.waycore.compass",
+  "name": "Compass",
+  "version": "1.0.0",
+  "description": "Navigation compass with magnetic heading, GPS coordinates, and elevation display",
+  "icon": "🧭",
+  "category": "navigation",
+  "entry": {
+    "qml": "qml/CompassMain.qml"
+  },
+  "permissions": [
+    "sensors.magnetometer",
+    "sensors.gps"
+  ],
+  "sensors": [
+    {"type": "magnetometer", "required": true},
+    {"type": "gps", "required": false},
+    {"type": "barometer", "required": false}
+  ],
+  "tier": 2,
+  "homePosition": 0,
+  "enabled": true
+}

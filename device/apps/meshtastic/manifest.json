@@ -1,0 +1,18 @@
+{
+  "id": "com.waycore.meshtastic",
+  "name": "Mesh",
+  "version": "1.0.0",
+  "description": "Meshtastic mesh network chat and node management",
+  "icon": "📡",
+  "category": "communication",
+  "entry": {
+    "qml": "qml/MeshMain.qml"
+  },
+  "permissions": [
+    "mesh.send",
+    "mesh.receive",
+    "mesh.nodes"
+  ],
+  "tier": 1,
+  "enabled": true
+}

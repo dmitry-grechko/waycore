@@ -1,0 +1,21 @@
+{
+  "id": "com.waycore.modules",
+  "name": "Modules",
+  "version": "1.0.0",
+  "description": "Hardware modules and sensor monitoring",
+  "icon": "📊",
+  "category": "sensors",
+  "entry": {
+    "qml": "qml/SensorsMain.qml"
+  },
+  "permissions": [
+    "sensors.all"
+  ],
+  "sensors": [
+    {"type": "temperature", "required": false},
+    {"type": "battery", "required": false},
+    {"type": "gps", "required": false}
+  ],
+  "tier": 2,
+  "enabled": true
+}

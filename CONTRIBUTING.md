@@ -22,6 +22,15 @@ Thanks for your interest in contributing! This project follows a simulation-firs
 ## Directory Layout
 See the top-level `README.md` and `docs/overview.md`. Code and service boundaries should reflect the processes listed there.
 
+## Building Apps
+
+If you're building apps for Waycore, see the developer documentation:
+
+- [App Development Guide](docs/developer/app-development-guide.md) — Complete guide to building apps
+- [App Manifest Schema](docs/developer/app-manifest.md) — Configuration reference
+- [App Backend Integration](docs/developer/app-backend.md) — Python backend services
+- [UI Components](docs/developer/ui-components.md) — Component library and theme
+
 ## Code Style
 - Python: typed where practical, clear names, prefer early returns
 - UI (Qt/QML + PySide6): keep logic minimal in QML, move complexity to Python

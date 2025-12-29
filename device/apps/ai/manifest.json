@@ -1,0 +1,18 @@
+{
+  "id": "com.waycore.ai",
+  "name": "AI",
+  "version": "1.0.0",
+  "description": "AI Assistant with chat, image classification, and knowledge queries",
+  "icon": "🤖",
+  "category": "ai",
+  "entry": {
+    "qml": "qml/AIMain.qml"
+  },
+  "permissions": [
+    "ai.chat",
+    "ai.classify",
+    "storage.read"
+  ],
+  "tier": 1,
+  "enabled": true
+}
