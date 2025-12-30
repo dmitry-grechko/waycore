@@ -4,7 +4,14 @@ import QtQuick.Layouts 1.15
 import Core as Core
 
 /**
- * NoteEditor - Edit or create a note
+ * NoteEditor - Tactical-styled note editor
+ *
+ * Uses standardized Core components:
+ * - TacticalBackground for grid + vignette
+ * - PageHeader for header
+ * - TacticalInput for title input
+ * - TacticalTextArea for content
+ * - ActionBar for save/delete actions
  */
 Rectangle {
     id: noteEditor
@@ -35,121 +42,176 @@ Rectangle {
         }
     }
 
+    // Tactical background (grid + vignette)
+    Core.TacticalBackground {
+        anchors.fill: parent
+        z: 0
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
+        z: 10
 
-        // App bar
-        Core.AppBar {
+        // Header using PageHeader component
+        Core.PageHeader {
             Layout.fillWidth: true
             title: noteId < 0 ? "New Note" : "Edit Note"
             showBack: true
+            rightIcon: "edit_note"
             onBackClicked: {
                 if (isModified) {
                     saveNote()
                 }
                 noteEditor.backRequested()
             }
-
-            rightContent: Core.Button {
-                text: isSaving ? "Saving..." : "Save"
-                size: "small"
-                variant: "primary"
-                enabled: isModified && !isSaving
-                onClicked: saveNote()
-            }
-        }
-
-        // Title input
-        Core.TextField {
-            Layout.fillWidth: true
-            Layout.margins: Core.Theme.spacingMedium
-            Layout.bottomMargin: 0
-            placeholderText: "Note title..."
-            text: noteTitle
-            font.pixelSize: Core.Theme.h3Size
-            font.weight: Core.Theme.fontWeightBold
-            onTextChanged: {
-                if (noteTitle !== text) {
-                    noteTitle = text
-                    isModified = true
-                }
-            }
-        }
-
-        // Formatting toolbar
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.margins: Core.Theme.spacingMedium
-            Layout.topMargin: Core.Theme.spacingSmall
-            spacing: Core.Theme.spacingXS
-
-            Core.Button {
-                text: "H1"
-                size: "small"
-                variant: "ghost"
-                onClicked: insertFormatting("# ")
-            }
-            Core.Button {
-                text: "H2"
-                size: "small"
-                variant: "ghost"
-                onClicked: insertFormatting("## ")
-            }
-            Core.Button {
-                text: "•"
-                size: "small"
-                variant: "ghost"
-                onClicked: insertFormatting("- ")
-            }
-            Core.Button {
-                text: "B"
-                size: "small"
-                variant: "ghost"
-                onClicked: wrapSelection("**", "**")
-            }
-            Core.Button {
-                text: "I"
-                size: "small"
-                variant: "ghost"
-                onClicked: wrapSelection("*", "*")
-            }
-
-            Item { Layout.fillWidth: true }
-
-            Text {
-                text: contentArea.text.length + " chars"
-                color: Core.Theme.textSecondary
-                font.pixelSize: Core.Theme.smallSize
-            }
         }
 
         // Content area
-        Core.ScrollView {
+        Flickable {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.margins: Core.Theme.spacingMedium
-            Layout.topMargin: 0
+            contentHeight: contentColumn.height + 120
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
 
-            TextArea {
-                id: contentArea
-                text: noteContent
-                placeholderText: "Start writing...\n\nTip: Use the formatting buttons above for headers and lists."
-                wrapMode: TextEdit.Wrap
-                font.pixelSize: Core.Theme.bodySize
-                color: Core.Theme.textPrimary
-                placeholderTextColor: Core.Theme.textSecondary
-                background: Rectangle {
-                    color: Core.Theme.surface
-                    radius: Core.Theme.borderRadius
+            ColumnLayout {
+                id: contentColumn
+                width: parent.width
+                spacing: Core.Theme.spacingMedium
+
+                // Spacer
+                Item {
+                    Layout.fillWidth: true
+                    height: Core.Theme.spacingMedium
                 }
-                padding: Core.Theme.spacingMedium
-                onTextChanged: {
-                    if (noteContent !== text) {
-                        noteContent = text
-                        isModified = true
+
+                // Title input using TacticalInput
+                Core.TacticalInput {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Core.Theme.spacingMedium
+                    Layout.rightMargin: Core.Theme.spacingMedium
+                    label: "Title"
+                    placeholder: "Enter title..."
+                    text: noteTitle
+
+                    onTextChanged: {
+                        if (noteTitle !== text) {
+                            noteTitle = text
+                            isModified = true
+                        }
                     }
                 }
+
+                // Formatting toolbar
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Core.Theme.spacingMedium
+                    Layout.rightMargin: Core.Theme.spacingMedium
+                    height: 48
+                    color: "transparent"
+
+                    RowLayout {
+                        anchors.fill: parent
+                        spacing: 4
+
+                        ToolButton { iconName: "format-bold"; tooltip: "Bold" }
+                        ToolButton { iconName: "format-italic"; tooltip: "Italic" }
+                        ToolButton { iconName: "format-list-bulleted"; tooltip: "List" }
+                        ToolButton { iconName: "check"; tooltip: "Checkbox" }
+
+                        Rectangle {
+                            width: 1
+                            height: 24
+                            color: Qt.rgba(Core.Theme.divider.r, Core.Theme.divider.g, Core.Theme.divider.b, 0.3)
+                            Layout.alignment: Qt.AlignVCenter
+                        }
+
+                        ToolButton { iconName: "microphone"; tooltip: "Voice" }
+                        ToolButton { iconName: "camera"; tooltip: "Photo" }
+                        ToolButton { iconName: "map-marker"; tooltip: "Location" }
+
+                        Item { Layout.fillWidth: true }
+                    }
+
+                    // Bottom border
+                    Rectangle {
+                        anchors.bottom: parent.bottom
+                        width: parent.width
+                        height: 1
+                        color: Qt.rgba(Core.Theme.divider.r, Core.Theme.divider.g, Core.Theme.divider.b, 0.2)
+                    }
+                }
+
+                // Content input using TacticalTextArea
+                Core.TacticalTextArea {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Core.Theme.spacingMedium
+                    Layout.rightMargin: Core.Theme.spacingMedium
+                    label: "Content"
+                    placeholder: "Start typing..."
+                    text: noteContent
+                    minHeight: 300
+
+                    onTextChanged: {
+                        if (noteContent !== text) {
+                            noteContent = text
+                            isModified = true
+                        }
+                    }
+                }
+            }
+        }
+
+        // Bottom spacer for action bar
+        Item {
+            Layout.fillWidth: true
+            height: 100
+        }
+    }
+
+    // Bottom action bar using ActionBar component
+    Core.ActionBar {
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        z: 50
+
+        primaryText: isSaving ? "Saving..." : "Save Note"
+        primaryIcon: "content-save"
+        primaryLoading: isSaving
+        primaryEnabled: !isSaving
+        onPrimaryClicked: saveNote()
+
+        secondaryIcon: noteId >= 0 ? "delete" : ""
+        secondaryDestructive: true
+        onSecondaryClicked: deleteConfirmDialog.open()
+    }
+
+    // Tool Button Component
+    component ToolButton: Rectangle {
+        property string iconName: ""
+        property string tooltip: ""
+        property bool active: false
+
+        width: 40
+        height: 40
+        color: toolArea.containsMouse ? Core.Theme.surface : "transparent"
+        radius: Core.Theme.borderRadius
+
+        Core.MaterialIcon {
+            anchors.centerIn: parent
+            name: parent.iconName
+            size: 20
+            iconColor: parent.active ? Core.Theme.warning : (toolArea.containsMouse ? Core.Theme.textPrimary : Core.Theme.textSecondary)
+        }
+
+        MouseArea {
+            id: toolArea
+            anchors.fill: parent
+            hoverEnabled: true
+            onClicked: {
+                // TODO: Implement formatting actions
             }
         }
     }
@@ -160,30 +222,19 @@ Rectangle {
         position: "bottom"
     }
 
-    function insertFormatting(prefix) {
-        var pos = contentArea.cursorPosition
-        var text = contentArea.text
+    // Delete confirmation dialog
+    Core.Dialog {
+        id: deleteConfirmDialog
+        title: "Delete Note?"
+        message: "This note will be permanently deleted."
+        confirmText: "Delete"
+        destructive: true
 
-        var lineStart = text.lastIndexOf("\n", pos - 1) + 1
-
-        contentArea.text = text.substring(0, lineStart) + prefix + text.substring(lineStart)
-        contentArea.cursorPosition = pos + prefix.length
-    }
-
-    function wrapSelection(before, after) {
-        var start = contentArea.selectionStart
-        var end = contentArea.selectionEnd
-
-        if (start === end) {
-            var text = contentArea.text
-            var pos = contentArea.cursorPosition
-            contentArea.text = text.substring(0, pos) + before + after + text.substring(pos)
-            contentArea.cursorPosition = pos + before.length
-        } else {
-            var text = contentArea.text
-            var selected = text.substring(start, end)
-            contentArea.text = text.substring(0, start) + before + selected + after + text.substring(end)
-            contentArea.cursorPosition = end + before.length + after.length
+        onConfirmed: {
+            if (NotesBridge && noteId >= 0) {
+                NotesBridge.deleteNote(noteId)
+                noteEditor.backRequested()
+            }
         }
     }
 
@@ -198,7 +249,7 @@ Rectangle {
 
         if (result >= 0) {
             if (noteId < 0) {
-                noteId = result  // Update ID for new notes
+                noteId = result
             }
             isModified = false
             toast.show("✓ Saved")

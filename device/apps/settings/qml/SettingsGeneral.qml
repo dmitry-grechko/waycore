@@ -5,316 +5,550 @@ import QtCore
 import Core as Core
 
 /**
- * SettingsGeneral - General settings (units, display, storage, reset)
+ * SettingsGeneral - System configuration, display & power settings
+ *
+ * Uses standardized Core components:
+ * - TacticalBackground for grid + vignette
+ * - PageHeader for navigation
+ * - Card for content sections
+ * - Theme colors for consistency
+ * - MaterialIcon for icons
+ * - Switch, Slider for controls
  */
 Rectangle {
     id: settingsGeneral
     color: Core.Theme.background
 
+    // Navigation signals
     signal backRequested()
     signal navigateHome()
 
-    // Persistent app preferences
+    // Persistent settings
     Settings {
         id: appSettings
         category: "waycore.ui"
         property bool debug: false
         property string theme: "dark"
-        property int brightness: 75
-        property string temperatureUnit: "F"
-        property string distanceUnit: "mi"
-        property string weightUnit: "lb"
-        property string pressureUnit: "hPa"
+        property int brightness: 85
+        property string temperatureUnit: "C"
+        property string distanceUnit: "km"
+        property string weightUnit: "kg"
         property bool use24Hour: true
         property int screenTimeout: 60
     }
 
-    Flickable {
-        anchors.fill: parent
-        contentHeight: contentColumn.height
-        clip: true
-
-        ColumnLayout {
-            id: contentColumn
-            width: parent.width
-            spacing: 0
-
-            // App bar
-            Core.AppBar {
-                Layout.fillWidth: true
-                title: "⚙️ General"
-                showBack: true
-                onBackClicked: settingsGeneral.backRequested()
-            }
-
-            // Units Card
-            Core.Card {
-                Layout.fillWidth: true
-                Layout.margins: Core.Theme.spacingMedium
-                title: "Units"
-
-                ColumnLayout {
-                    width: parent.width
-                    spacing: Core.Theme.spacingSmall
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: "Temperature"; color: Core.Theme.textSecondary; Layout.preferredWidth: 100 }
-                        ComboBox {
-                            model: ["Celsius (°C)", "Fahrenheit (°F)"]
-                            currentIndex: appSettings.temperatureUnit === "C" ? 0 : 1
-                            onActivated: appSettings.temperatureUnit = currentIndex === 0 ? "C" : "F"
-                            Layout.fillWidth: true
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: "Distance"; color: Core.Theme.textSecondary; Layout.preferredWidth: 100 }
-                        ComboBox {
-                            model: ["Kilometers (km)", "Miles (mi)"]
-                            currentIndex: appSettings.distanceUnit === "km" ? 0 : 1
-                            onActivated: appSettings.distanceUnit = currentIndex === 0 ? "km" : "mi"
-                            Layout.fillWidth: true
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: "Weight"; color: Core.Theme.textSecondary; Layout.preferredWidth: 100 }
-                        ComboBox {
-                            model: ["Kilograms (kg)", "Pounds (lb)"]
-                            currentIndex: appSettings.weightUnit === "kg" ? 0 : 1
-                            onActivated: appSettings.weightUnit = currentIndex === 0 ? "kg" : "lb"
-                            Layout.fillWidth: true
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: "Time format"; color: Core.Theme.textSecondary; Layout.preferredWidth: 100 }
-                        ComboBox {
-                            model: ["24-hour", "12-hour"]
-                            currentIndex: appSettings.use24Hour ? 0 : 1
-                            onActivated: appSettings.use24Hour = currentIndex === 0
-                            Layout.fillWidth: true
-                        }
-                    }
-                }
-            }
-
-            // Display Card
-            Core.Card {
-                Layout.fillWidth: true
-                Layout.margins: Core.Theme.spacingMedium
-                Layout.topMargin: 0
-                title: "Display"
-
-                ColumnLayout {
-                    width: parent.width
-                    spacing: Core.Theme.spacingSmall
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: "Brightness"; color: Core.Theme.textSecondary }
-                        Core.Slider {
-                            from: 0; to: 100; value: appSettings.brightness
-                            onValueChanged: appSettings.brightness = Math.round(value)
-                            Layout.fillWidth: true
-                        }
-                        Text { text: appSettings.brightness + "%"; color: Core.Theme.textPrimary; Layout.preferredWidth: 40 }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: "Screen timeout"; color: Core.Theme.textSecondary; Layout.preferredWidth: 120 }
-                        ComboBox {
-                            model: ["30 seconds", "1 minute", "2 minutes", "5 minutes", "Never"]
-                            currentIndex: {
-                                switch(appSettings.screenTimeout) {
-                                    case 30: return 0
-                                    case 60: return 1
-                                    case 120: return 2
-                                    case 300: return 3
-                                    default: return 4
-                                }
-                            }
-                            onActivated: {
-                                var timeouts = [30, 60, 120, 300, 0]
-                                appSettings.screenTimeout = timeouts[currentIndex]
-                            }
-                            Layout.fillWidth: true
-                        }
-                    }
-                }
-            }
-
-            // Developer Card
-            Core.Card {
-                Layout.fillWidth: true
-                Layout.margins: Core.Theme.spacingMedium
-                Layout.topMargin: 0
-                title: "Developer"
-
-                ColumnLayout {
-                    width: parent.width
-                    spacing: Core.Theme.spacingSmall
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: "Debug mode"; color: Core.Theme.textSecondary; Layout.fillWidth: true }
-                        Switch { checked: appSettings.debug; onToggled: appSettings.debug = checked }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: "Theme"; color: Core.Theme.textSecondary; Layout.preferredWidth: 100 }
-                        ComboBox {
-                            model: ["dark", "light"]
-                            currentIndex: appSettings.theme === "dark" ? 0 : 1
-                            onActivated: appSettings.theme = currentText
-                            Layout.fillWidth: true
-                        }
-                    }
-                }
-            }
-
-            // Storage Card
-            Core.Card {
-                Layout.fillWidth: true
-                Layout.margins: Core.Theme.spacingMedium
-                Layout.topMargin: 0
-                title: "Storage"
-
-                Component.onCompleted: {
-                    if (SensorBridge) SensorBridge.refreshStorage()
-                }
-
-                ColumnLayout {
-                    width: parent.width
-                    spacing: Core.Theme.spacingSmall
-
-                    Core.ProgressBar {
-                        Layout.fillWidth: true
-                        value: SensorBridge ? SensorBridge.storageUsedPercent / 100 : 0.35
-                        variant: (SensorBridge && SensorBridge.storageUsedPercent > 90) ? "error" :
-                                 (SensorBridge && SensorBridge.storageUsedPercent > 75) ? "warning" : "default"
-                    }
-
-                    GridLayout {
-                        columns: 2
-                        Layout.fillWidth: true
-
-                        Text { text: "Total"; color: Core.Theme.textSecondary; font.pixelSize: Core.Theme.captionSize }
-                        Text {
-                            text: SensorBridge ? SensorBridge.storageTotalGb.toFixed(1) + " GB" : "32 GB"
-                            color: Core.Theme.textPrimary; font.pixelSize: Core.Theme.captionSize
-                        }
-
-                        Text { text: "Used"; color: Core.Theme.textSecondary; font.pixelSize: Core.Theme.captionSize }
-                        Text {
-                            text: SensorBridge ?
-                                SensorBridge.storageUsedGb.toFixed(1) + " GB (" + SensorBridge.storageUsedPercent.toFixed(0) + "%)" :
-                                "-- GB"
-                            color: Core.Theme.textPrimary; font.pixelSize: Core.Theme.captionSize
-                        }
-
-                        Text { text: "Available"; color: Core.Theme.textSecondary; font.pixelSize: Core.Theme.captionSize }
-                        Text {
-                            text: SensorBridge ? SensorBridge.storageAvailableGb.toFixed(1) + " GB" : "-- GB"
-                            color: Core.Theme.success; font.pixelSize: Core.Theme.captionSize
-                        }
-                    }
-
-                    Core.Button {
-                        text: "Refresh Storage Info"
-                        fullWidth: true
-                        variant: "secondary"
-                        onClicked: {
-                            if (SensorBridge) SensorBridge.refreshStorage()
-                        }
-                    }
-                }
-            }
-
-            // Factory Reset Card
-            Core.Card {
-                Layout.fillWidth: true
-                Layout.margins: Core.Theme.spacingMedium
-                Layout.topMargin: 0
-                title: "⚠️ Danger Zone"
-
-                ColumnLayout {
-                    width: parent.width
-                    spacing: Core.Theme.spacingSmall
-
-                    Text {
-                        text: "Factory reset will delete all notes, preferences, and restore default settings."
-                        color: Core.Theme.textSecondary
-                        font.pixelSize: Core.Theme.bodySize
-                        wrapMode: Text.WordWrap
-                        Layout.fillWidth: true
-                    }
-
-                    Core.Button {
-                        id: resetButton
-                        text: isResetting ? "Resetting..." : (confirmReset ? "Tap again to confirm" : "Factory Reset")
-                        fullWidth: true
-                        variant: "danger"
-                        enabled: !isResetting
-
-                        property bool confirmReset: false
-                        property bool isResetting: false
-
-                        onClicked: {
-                            if (isResetting) return
-
-                            if (confirmReset) {
-                                isResetting = true
-                                confirmReset = false
-                                performFactoryReset()
-                            } else {
-                                confirmReset = true
-                                confirmTimer.start()
-                            }
-                        }
-
-                        Timer {
-                            id: confirmTimer
-                            interval: 3000
-                            onTriggered: resetButton.confirmReset = false
-                        }
-                    }
-                }
-            }
-
-            Item { Layout.preferredHeight: Core.Theme.spacingLarge }
-        }
-    }
-
-    // Toast for status messages
-    Core.Toast {
-        id: toast
-        position: "bottom"
-    }
-
+    // Factory reset
     function performFactoryReset() {
         console.log("Factory reset: calling backend...")
         var success = SensorBridge ? SensorBridge.factoryReset() : false
-
-        if (success) {
-            toast.show("✅ Factory reset complete")
-        } else {
-            toast.show("⚠️ Reset completed (offline mode)")
-        }
-
         resetButton.isResetting = false
-        resetCompleteTimer.start()
+        settingsGeneral.navigateHome()
     }
 
-    Timer {
-        id: resetCompleteTimer
-        interval: 1500
-        onTriggered: settingsGeneral.navigateHome()
+    // Tactical background using standardized component
+    Core.TacticalBackground {
+        anchors.fill: parent
+        z: 0
+        vignetteOpacity: 0.5
+    }
+
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: 0
+        z: 10
+
+        // Header using PageHeader
+        Core.PageHeader {
+            Layout.fillWidth: true
+            title: "General"
+            subtitle: "Settings"
+            showBack: true
+            onBackClicked: settingsGeneral.backRequested()
+        }
+
+        // Scrollable content
+        Flickable {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            contentWidth: width
+            contentHeight: contentColumn.height + 32
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+
+            ColumnLayout {
+                id: contentColumn
+                width: parent.width
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: Core.Theme.spacingMedium
+
+                Item { Layout.preferredHeight: Core.Theme.spacingSmall }
+
+                // Units Section
+                Core.Card {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Core.Theme.spacingMedium
+                    Layout.rightMargin: Core.Theme.spacingMedium
+
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: Core.Theme.spacingMedium
+
+                        Row {
+                            spacing: Core.Theme.spacingSmall
+                            Core.MaterialIcon {
+                                name: "ruler"
+                                size: 16
+                                iconColor: Core.Theme.warning
+                            }
+                            Text {
+                                text: "UNITS"
+                                color: Core.Theme.warning
+                                font.pixelSize: Core.Theme.labelSize
+                                font.weight: Core.Theme.fontWeightBold
+                                font.letterSpacing: Core.Theme.letterSpacingNormal
+                            }
+                        }
+
+                        GridLayout {
+                            Layout.fillWidth: true
+                            columns: 2
+                            columnSpacing: Core.Theme.spacingSmall
+                            rowSpacing: Core.Theme.spacingSmall
+
+                            // Temperature
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 4
+                                Text {
+                                    text: "TEMPERATURE"
+                                    color: Core.Theme.textSecondary
+                                    font.pixelSize: Core.Theme.tinySize
+                                    font.weight: Core.Theme.fontWeightBold
+                                    font.letterSpacing: 1
+                                }
+                                Core.TacticalComboBox {
+                                    Layout.fillWidth: true
+                                    model: ["Celsius (°C)", "Fahrenheit (°F)"]
+                                    currentIndex: appSettings.temperatureUnit === "C" ? 0 : 1
+                                    onActivated: {
+                                        appSettings.temperatureUnit = currentIndex === 0 ? "C" : "F"
+                                    }
+                                }
+                            }
+
+                            // Distance
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 4
+                                Text {
+                                    text: "DISTANCE"
+                                    color: Core.Theme.textSecondary
+                                    font.pixelSize: Core.Theme.tinySize
+                                    font.weight: Core.Theme.fontWeightBold
+                                    font.letterSpacing: 1
+                                }
+                                Core.TacticalComboBox {
+                                    Layout.fillWidth: true
+                                    model: ["Metric (m/km)", "Imperial (ft/mi)"]
+                                    currentIndex: appSettings.distanceUnit === "km" ? 0 : 1
+                                    onActivated: appSettings.distanceUnit = currentIndex === 0 ? "km" : "mi"
+                                }
+                            }
+
+                            // Weight
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 4
+                                Text {
+                                    text: "WEIGHT"
+                                    color: Core.Theme.textSecondary
+                                    font.pixelSize: Core.Theme.tinySize
+                                    font.weight: Core.Theme.fontWeightBold
+                                    font.letterSpacing: 1
+                                }
+                                Core.TacticalComboBox {
+                                    Layout.fillWidth: true
+                                    model: ["Kilograms (kg)", "Pounds (lbs)"]
+                                    currentIndex: appSettings.weightUnit === "kg" ? 0 : 1
+                                    onActivated: appSettings.weightUnit = currentIndex === 0 ? "kg" : "lb"
+                                }
+                            }
+
+                            // Time Format
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 4
+                                Text {
+                                    text: "TIME FORMAT"
+                                    color: Core.Theme.textSecondary
+                                    font.pixelSize: Core.Theme.tinySize
+                                    font.weight: Core.Theme.fontWeightBold
+                                    font.letterSpacing: 1
+                                }
+                                Core.TacticalComboBox {
+                                    Layout.fillWidth: true
+                                    model: ["24 Hour (ISO)", "12 Hour (AM/PM)"]
+                                    currentIndex: appSettings.use24Hour ? 0 : 1
+                                    onActivated: appSettings.use24Hour = currentIndex === 0
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Display Section
+                Core.Card {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Core.Theme.spacingMedium
+                    Layout.rightMargin: Core.Theme.spacingMedium
+
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: Core.Theme.spacingMedium
+
+                        Row {
+                            spacing: Core.Theme.spacingSmall
+                            Core.MaterialIcon {
+                                name: "brightness-6"
+                                size: 16
+                                iconColor: Core.Theme.warning
+                            }
+                            Text {
+                                text: "DISPLAY"
+                                color: Core.Theme.warning
+                                font.pixelSize: Core.Theme.labelSize
+                                font.weight: Core.Theme.fontWeightBold
+                                font.letterSpacing: Core.Theme.letterSpacingNormal
+                            }
+                        }
+
+                        // Brightness
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: Core.Theme.spacingSmall
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Text {
+                                    text: "BRIGHTNESS"
+                                    color: Core.Theme.textSecondary
+                                    font.pixelSize: Core.Theme.tinySize
+                                    font.weight: Core.Theme.fontWeightBold
+                                    font.letterSpacing: 1
+                                }
+                                Item { Layout.fillWidth: true }
+                                Text {
+                                    text: appSettings.brightness + "%"
+                                    color: Core.Theme.textPrimary
+                                    font.pixelSize: Core.Theme.smallSize
+                                    font.family: Core.Theme.fontFamilyMono
+                                }
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: Core.Theme.spacingSmall
+
+                                Core.MaterialIcon {
+                                    name: "brightness-5"
+                                    size: 14
+                                    iconColor: Core.Theme.textSecondary
+                                }
+
+                                Core.Slider {
+                                    Layout.fillWidth: true
+                                    from: 0
+                                    to: 100
+                                    value: appSettings.brightness
+                                    onValueChanged: appSettings.brightness = Math.round(value)
+                                }
+
+                                Core.MaterialIcon {
+                                    name: "brightness-7"
+                                    size: 16
+                                    iconColor: Core.Theme.textPrimary
+                                }
+                            }
+                        }
+
+                        // Screen Timeout
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+                            Text {
+                                text: "SCREEN TIMEOUT"
+                                color: Core.Theme.textSecondary
+                                font.pixelSize: Core.Theme.tinySize
+                                font.weight: Core.Theme.fontWeightBold
+                                font.letterSpacing: 1
+                            }
+                            Core.TacticalComboBox {
+                                Layout.fillWidth: true
+                                model: ["1 Minute", "5 Minutes", "15 Minutes", "Never"]
+                                currentIndex: {
+                                    switch(appSettings.screenTimeout) {
+                                        case 60: return 0
+                                        case 300: return 1
+                                        case 900: return 2
+                                        default: return 3
+                                    }
+                                }
+                                onActivated: {
+                                    var timeouts = [60, 300, 900, 0]
+                                    appSettings.screenTimeout = timeouts[currentIndex]
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Developer Section
+                Core.Card {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Core.Theme.spacingMedium
+                    Layout.rightMargin: Core.Theme.spacingMedium
+
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: Core.Theme.spacingMedium
+
+                        Row {
+                            spacing: Core.Theme.spacingSmall
+                            Core.MaterialIcon {
+                                name: "console"
+                                size: 16
+                                iconColor: Core.Theme.warning
+                            }
+                            Text {
+                                text: "DEVELOPER"
+                                color: Core.Theme.warning
+                                font.pixelSize: Core.Theme.labelSize
+                                font.weight: Core.Theme.fontWeightBold
+                                font.letterSpacing: Core.Theme.letterSpacingNormal
+                            }
+                        }
+
+                        Core.Divider { Layout.fillWidth: true }
+
+                        // Debug Mode Toggle
+                        RowLayout {
+                            Layout.fillWidth: true
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 2
+                                Text {
+                                    text: "Debug Mode"
+                                    color: Core.Theme.textPrimary
+                                    font.pixelSize: Core.Theme.bodySmallSize
+                                    font.weight: Core.Theme.fontWeightBold
+                                }
+                                Text {
+                                    text: "Enable verbose logging"
+                                    color: Core.Theme.textSecondary
+                                    font.pixelSize: Core.Theme.tinySize
+                                    font.family: Core.Theme.fontFamilyMono
+                                }
+                            }
+
+                            Core.Switch {
+                                checked: appSettings.debug
+                                onToggled: appSettings.debug = checked
+                            }
+                        }
+
+                        // Theme
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+                            Text {
+                                text: "UI THEME"
+                                color: Core.Theme.textSecondary
+                                font.pixelSize: Core.Theme.tinySize
+                                font.weight: Core.Theme.fontWeightBold
+                                font.letterSpacing: 1
+                            }
+                            Core.TacticalComboBox {
+                                Layout.fillWidth: true
+                                model: ["Tactical Dark (Default)", "Night Vision (Red)", "High Contrast"]
+                                currentIndex: 0
+                            }
+                        }
+                    }
+                }
+
+                // Storage Section
+                Core.Card {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Core.Theme.spacingMedium
+                    Layout.rightMargin: Core.Theme.spacingMedium
+
+                    Component.onCompleted: {
+                        if (SensorBridge) SensorBridge.refreshStorage()
+                    }
+
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: Core.Theme.spacingMedium
+
+                        Row {
+                            spacing: Core.Theme.spacingSmall
+                            Core.MaterialIcon {
+                                name: "harddisk"
+                                size: 16
+                                iconColor: Core.Theme.warning
+                            }
+                            Text {
+                                text: "STORAGE"
+                                color: Core.Theme.warning
+                                font.pixelSize: Core.Theme.labelSize
+                                font.weight: Core.Theme.fontWeightBold
+                                font.letterSpacing: Core.Theme.letterSpacingNormal
+                            }
+                        }
+
+                        // Usage bar
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: Core.Theme.spacingSmall
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Text {
+                                    text: SensorBridge ? SensorBridge.storageUsedGb.toFixed(1) + " GB Used" : "14.2 GB Used"
+                                    color: Core.Theme.textPrimary
+                                    font.pixelSize: Core.Theme.bodySmallSize
+                                    font.family: Core.Theme.fontFamilyMono
+                                    font.weight: Core.Theme.fontWeightBold
+                                }
+                                Item { Layout.fillWidth: true }
+                                Text {
+                                    text: SensorBridge ? SensorBridge.storageTotalGb.toFixed(0) + " GB Total" : "64 GB Total"
+                                    color: Core.Theme.textSecondary
+                                    font.pixelSize: Core.Theme.smallSize
+                                    font.family: Core.Theme.fontFamilyMono
+                                }
+                            }
+
+                            Core.ProgressBar {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 12
+                                value: SensorBridge ? SensorBridge.storageUsedPercent / 100 : 0.22
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Text {
+                                    text: "SYSTEM: 4GB"
+                                    color: Core.Theme.textSecondary
+                                    font.pixelSize: Core.Theme.tinySize
+                                    font.weight: Core.Theme.fontWeightBold
+                                    font.letterSpacing: 1
+                                }
+                                Item { Layout.fillWidth: true }
+                                Text {
+                                    text: "MAPS: 8GB"
+                                    color: Core.Theme.textSecondary
+                                    font.pixelSize: Core.Theme.tinySize
+                                    font.weight: Core.Theme.fontWeightBold
+                                    font.letterSpacing: 1
+                                }
+                                Item { Layout.fillWidth: true }
+                                Text {
+                                    text: "LOGS: 2.2GB"
+                                    color: Core.Theme.textSecondary
+                                    font.pixelSize: Core.Theme.tinySize
+                                    font.weight: Core.Theme.fontWeightBold
+                                    font.letterSpacing: 1
+                                }
+                            }
+                        }
+
+                        // Refresh button
+                        Core.Button {
+                            Layout.fillWidth: true
+                            text: "Refresh Storage Info"
+                            iconName: "refresh"
+                            variant: "tacticalSecondary"
+                            onClicked: {
+                                if (SensorBridge) SensorBridge.refreshStorage()
+                            }
+                        }
+                    }
+                }
+
+                // Danger Zone Section
+                Core.Card {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Core.Theme.spacingMedium
+                    Layout.rightMargin: Core.Theme.spacingMedium
+                    Layout.topMargin: Core.Theme.spacingSmall
+                    accentBorder: true
+                    accentColor: Core.Theme.warning
+
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: Core.Theme.spacingMedium
+
+                        Row {
+                            spacing: Core.Theme.spacingSmall
+                            Core.MaterialIcon {
+                                name: "alert"
+                                size: 16
+                                iconColor: Core.Theme.warning
+                            }
+                            Text {
+                                text: "DANGER ZONE"
+                                color: Core.Theme.warning
+                                font.pixelSize: Core.Theme.labelSize
+                                font.weight: Core.Theme.fontWeightBold
+                                font.letterSpacing: Core.Theme.letterSpacingNormal
+                            }
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Performing a factory reset will erase all local data, maps, and logs. This action cannot be undone."
+                            color: Core.Theme.textSecondary
+                            font.pixelSize: Core.Theme.smallSize
+                            wrapMode: Text.WordWrap
+                            lineHeight: 1.4
+                        }
+
+                        Core.Button {
+                            id: resetButton
+                            Layout.fillWidth: true
+                            text: isResetting ? "Resetting..." : (confirmReset ? "Tap Again to Confirm" : "Factory Reset")
+                            iconName: "delete"
+                            variant: confirmReset ? "danger" : "tacticalSecondary"
+                            enabled: !isResetting
+
+                            property bool isResetting: false
+                            property bool confirmReset: false
+
+                            onClicked: {
+                                if (confirmReset) {
+                                    isResetting = true
+                                    confirmReset = false
+                                    settingsGeneral.performFactoryReset()
+                                } else {
+                                    confirmReset = true
+                                    confirmTimer.start()
+                                }
+                            }
+
+                            Timer {
+                                id: confirmTimer
+                                interval: 3000
+                                onTriggered: resetButton.confirmReset = false
+                            }
+                        }
+                    }
+                }
+
+                // Bottom spacer for scrolling
+                Item { Layout.preferredHeight: 120 }
+            }
+        }
     }
 }

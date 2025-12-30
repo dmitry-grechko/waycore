@@ -182,6 +182,15 @@ def main() -> int:
     engine.rootContext().setContextProperty("CameraBridge", camera_bridge)
     engine.rootContext().setContextProperty("AIBridge", ai_bridge)
 
+    # Set font path for Material Design Icons
+    project_root = Path(__file__).parent.parent.parent.parent.resolve()
+    font_path = project_root / "assets" / "fonts" / "materialdesignicons-webfont.ttf"
+    if font_path.exists():
+        engine.rootContext().setContextProperty("MaterialFontPath", f"file://{font_path}")
+        logger.info(f"Material font path: {font_path}")
+    else:
+        logger.warning(f"Material Design Icons font not found at {font_path}")
+
     # Get the QML directory path
     qml_dir = Path(__file__).parent / "qml"
     qml_dir_absolute = qml_dir.resolve()

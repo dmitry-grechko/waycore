@@ -3,7 +3,7 @@
   "name": "AI",
   "version": "1.0.0",
   "description": "AI Assistant with chat, image classification, and knowledge queries",
-  "icon": "🤖",
+  "icon": "smart_toy",
   "category": "ai",
   "entry": {
     "qml": "qml/AIMain.qml"

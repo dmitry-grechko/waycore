@@ -3,7 +3,7 @@
   "name": "Settings",
   "version": "1.0.0",
   "description": "System settings and configuration",
-  "icon": "⚙️",
+  "icon": "settings",
   "category": "system",
   "entry": {
     "qml": "qml/SettingsMain.qml"

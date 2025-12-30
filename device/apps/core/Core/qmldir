@@ -25,6 +25,8 @@ Icon 1.0 components/Icon.qml
 IconButton 1.0 components/IconButton.qml
 ListItem 1.0 components/ListItem.qml
 LoadingIndicator 1.0 components/LoadingIndicator.qml
+MaterialIcon 1.0 components/MaterialIcon.qml
+PageHeader 1.0 components/PageHeader.qml
 ProgressBar 1.0 components/ProgressBar.qml
 QuickAction 1.0 components/QuickAction.qml
 ScrollView 1.0 components/ScrollView.qml
@@ -33,5 +35,10 @@ Slider 1.0 components/Slider.qml
 StatusIndicator 1.0 components/StatusIndicator.qml
 Switch 1.0 components/Switch.qml
 TabBar 1.0 components/TabBar.qml
+TacticalBackground 1.0 components/TacticalBackground.qml
+TacticalComboBox 1.0 components/TacticalComboBox.qml
+TacticalInput 1.0 components/TacticalInput.qml
+TacticalTextArea 1.0 components/TacticalTextArea.qml
 TextField 1.0 components/TextField.qml
 Toast 1.0 components/Toast.qml
+ActionBar 1.0 components/ActionBar.qml

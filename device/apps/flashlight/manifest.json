@@ -3,7 +3,7 @@
   "name": "Flashlight",
   "version": "1.0.0",
   "description": "Simple flashlight toggle",
-  "icon": "🔦",
+  "icon": "flashlight",
   "category": "utilities",
   "entry": {
     "qml": "qml/FlashlightMain.qml"

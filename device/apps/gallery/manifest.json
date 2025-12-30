@@ -3,7 +3,7 @@
   "name": "Gallery",
   "version": "1.0.0",
   "description": "Photo gallery and viewer",
-  "icon": "🖼️",
+  "icon": "image",
   "category": "media",
   "entry": {
     "qml": "qml/GalleryMain.qml"

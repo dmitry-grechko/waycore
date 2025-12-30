@@ -1,28 +1,24 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
-import "." as App
-import "components" as UI
+import Core as Core
 
 /**
- * Direct Message Conversation with a specific node.
- *
- * Properties:
- *   - node_id: The node ID to have a conversation with
+ * MeshConversation - Direct Message screen with tactical design
  */
 Rectangle {
     id: meshConversation
-    color: App.Theme.background
+    color: Core.Theme.background
 
-    // Node we're chatting with
     property string node_id: ""
     property string node_name: ""
     property string node_alias: ""
     property bool is_favorite: false
     property bool is_online: false
 
-    // Chat state
-    property var messages: []
+    ListModel {
+        id: messagesModel
+    }
 
     Component.onCompleted: {
         loadNodeInfo()
@@ -30,10 +26,7 @@ Rectangle {
     }
 
     function loadNodeInfo() {
-        console.log("MeshConversation: loading info for node", node_id)
-
-        if (MeshBridge && node_id) {
-            // Get node info from nodes list
+        if (typeof MeshBridge !== "undefined" && MeshBridge && node_id) {
             var nodesResult = MeshBridge.getNodesWithContacts()
             if (nodesResult && nodesResult.nodes) {
                 for (var i = 0; i < nodesResult.nodes.length; i++) {
@@ -48,88 +41,87 @@ Rectangle {
                 }
             }
 
-            // Get contact info
             var contactResult = MeshBridge.getContact(node_id)
             if (contactResult && contactResult.contact) {
                 node_alias = contactResult.contact.alias || ""
                 is_favorite = contactResult.contact.is_favorite || false
             }
         } else {
-            // Mock
-            node_name = "ALPH"
-            node_alias = "Alpha Team"
-            is_favorite = true
+            node_name = "RANGER-Alpha"
+            node_alias = ""
+            is_favorite = false
             is_online = true
         }
     }
 
     function refreshMessages() {
-        console.log("MeshConversation: refreshMessages for", node_id)
+        messagesModel.clear()
+        var msgArray = []
 
-        if (MeshBridge && node_id) {
+        if (typeof MeshBridge !== "undefined" && MeshBridge && node_id) {
             var result = MeshBridge.getConversation(node_id, 100)
-            console.log("MeshConversation: getConversation result =", JSON.stringify(result))
             if (result && result.messages) {
-                messages = result.messages
-                console.log("MeshConversation: loaded", messages.length, "messages")
+                // Ensure all properties are defined
+                for (var i = 0; i < result.messages.length; i++) {
+                    var msg = result.messages[i]
+                    msgArray.push({
+                        id: msg.id || "",
+                        from_node: msg.from_node || "",
+                        text: msg.text || "",
+                        timestamp: msg.timestamp || "",
+                        is_mine: msg.is_mine || false,
+                        delivery_status: msg.delivery_status || ""
+                    })
+                }
             }
         } else {
-            // Mock DM messages
-            messages = [
-                { id: "dm_1", from_node: node_id, text: "Hey, are you at the rally point?", timestamp: new Date(Date.now() - 60000).toISOString(), is_mine: false },
-                { id: "dm_2", from_node: "!00000001", text: "Almost there, ETA 5 minutes", timestamp: new Date(Date.now() - 30000).toISOString(), is_mine: true },
-                { id: "dm_3", from_node: node_id, text: "Copy that. See you soon.", timestamp: new Date().toISOString(), is_mine: false }
+            msgArray = [
+                { id: "dm_1", from_node: node_id, text: "Sitrep on waypoint charlie? Any movement observed in the north sector?", timestamp: new Date(Date.now() - 180000).toISOString(), is_mine: false, delivery_status: "" },
+                { id: "dm_2", from_node: "!00000001", text: "Negative contact. North sector is clear. Proceeding to observation point Delta.", timestamp: new Date(Date.now() - 120000).toISOString(), is_mine: true, delivery_status: "delivered" },
+                { id: "dm_3", from_node: node_id, text: "Copy that. Establishing relay position.", timestamp: new Date(Date.now() - 60000).toISOString(), is_mine: false, delivery_status: "" },
+                { id: "dm_4", from_node: "!00000001", text: "Understood. ETA 15 mikes.", timestamp: new Date().toISOString(), is_mine: true, delivery_status: "pending" }
             ]
+        }
+
+        for (var j = 0; j < msgArray.length; j++) {
+            messagesModel.append(msgArray[j])
         }
     }
 
     function sendMessage(text) {
         if (!text.trim()) return
 
-        // Show sending state
-        sendButton.text = "..."
-        sendButton.enabled = false
-
-        if (MeshBridge) {
+        if (typeof MeshBridge !== "undefined" && MeshBridge) {
             var result = MeshBridge.sendDirectMessage(text, node_id)
             if (result && result.success) {
                 messageInput.text = ""
                 refreshMessages()
             }
         } else {
-            // Mock: add to local list
-            var newMsg = {
+            messagesModel.append({
                 id: "dm_" + Date.now(),
                 from_node: "!00000001",
-                to_node: node_id,
                 text: text,
                 timestamp: new Date().toISOString(),
-                is_mine: true
-            }
-            messages = messages.concat([newMsg])
+                is_mine: true,
+                delivery_status: "pending"
+            })
             messageInput.text = ""
         }
-
-        // Reset button state
-        sendButton.text = "Send"
-        sendButton.enabled = messageInput.text.trim().length > 0
-
-        // Scroll to bottom
         messageList.positionViewAtEnd()
     }
 
     function toggleFavorite() {
-        if (MeshBridge) {
+        if (typeof MeshBridge !== "undefined" && MeshBridge) {
             var result = MeshBridge.toggleFavorite(node_id)
             if (result) {
-                is_favorite = result.is_favorite || !is_favorite
+                is_favorite = result.is_favorite
             }
         } else {
             is_favorite = !is_favorite
         }
     }
 
-    // Refresh timer
     Timer {
         interval: 5000
         running: true
@@ -137,114 +129,85 @@ Rectangle {
         onTriggered: refreshMessages()
     }
 
+    Core.TacticalBackground { anchors.fill: parent; z: 0 }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
+        z: 10
 
-        // Header bar
-        Rectangle {
+        // Header using PageHeader pattern with custom right content
+        Item {
             Layout.fillWidth: true
-            height: 56
-            color: App.Theme.surface
+            Layout.preferredHeight: Core.Theme.appBarHeight
 
-            RowLayout {
+            Core.PageHeader {
                 anchors.fill: parent
-                anchors.margins: App.Theme.spacingSmall
-                spacing: App.Theme.spacingSmall
+                title: node_alias || node_name || node_id
+                subtitle: is_online ? "Online" : "Offline"
+                showBack: true
+                rightIcon: "information"
+                onBackClicked: {
+                    var p = meshConversation.parent
+                    while (p && !p.navigateBack) p = p.parent
+                    if (p) p.navigateBack()
+                }
+                onRightClicked: {
+                    var p = meshConversation.parent
+                    while (p && !p.openNodeDetails) p = p.parent
+                    if (p) p.openNodeDetails(node_id)
+                }
+            }
 
-                Button {
-                    text: "←"
-                    font.pixelSize: 20
-                    onClicked: {
-                        var shell = meshConversation.parent
-                        while (shell && !shell.hasOwnProperty("navigateBack")) {
-                            shell = shell.parent
-                        }
-                        if (shell && shell.navigateBack) {
-                            shell.navigateBack()
-                        }
-                    }
+            // Favorite star button (overlaid on right side before info button)
+            Rectangle {
+                anchors.right: parent.right
+                anchors.rightMargin: 56  // Make room for info button
+                anchors.verticalCenter: parent.verticalCenter
+                width: 40
+                height: 40
+                radius: 20
+                color: favMouse.containsMouse ? Qt.rgba(Core.Theme.warning.r, Core.Theme.warning.g, Core.Theme.warning.b, 0.1) : "transparent"
+                z: 10
+
+                Core.MaterialIcon {
+                    anchors.centerIn: parent
+                    name: is_favorite ? "star" : "star-outline"
+                    size: 22
+                    iconColor: is_favorite ? Core.Theme.warning : Core.Theme.textSecondary
                 }
 
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 2
-
-                    Text {
-                        text: (node_alias || node_name || node_id)
-                        color: App.Theme.textPrimary
-                        font.pixelSize: App.Theme.h2Size
-                        font.bold: true
-                    }
-
-                    RowLayout {
-                        spacing: 4
-
-                        // Online status indicator
-                        Rectangle {
-                            width: 8
-                            height: 8
-                            radius: 4
-                            color: is_online ? App.Theme.success : App.Theme.textSecondary
-                        }
-
-                        Text {
-                            text: is_online ? "Online" : "Offline"
-                            color: App.Theme.textSecondary
-                            font.pixelSize: App.Theme.captionSize
-                        }
-
-                        Text {
-                            visible: node_alias && node_name
-                            text: " · " + node_name
-                            color: App.Theme.textSecondary
-                            font.pixelSize: App.Theme.captionSize
-                        }
-                    }
-                }
-
-                // Favorite button
-                Button {
-                    text: is_favorite ? "★" : "☆"
-                    font.pixelSize: 20
+                MouseArea {
+                    id: favMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
                     onClicked: toggleFavorite()
-                }
-
-                // Info button - navigate to node details
-                Button {
-                    text: "ⓘ"
-                    font.pixelSize: 18
-                    onClicked: {
-                        var shell = meshConversation.parent
-                        while (shell && !shell.hasOwnProperty("navigateTo")) {
-                            shell = shell.parent
-                        }
-                        if (shell && shell.navigateTo) {
-                            shell.navigateTo("MeshNodeDetails", { node_id: node_id })
-                        }
-                    }
                 }
             }
         }
 
-        // Divider
+        // Encryption banner
         Rectangle {
             Layout.fillWidth: true
-            height: 1
-            color: App.Theme.divider
-        }
+            height: 24
+            color: Qt.rgba(Core.Theme.success.r, Core.Theme.success.g, Core.Theme.success.b, 0.1)
 
-        // Encryption badge
-        Rectangle {
-            Layout.fillWidth: true
-            height: 28
-            color: Qt.rgba(App.Theme.primary.r, App.Theme.primary.g, App.Theme.primary.b, 0.1)
-
-            Text {
+            Row {
                 anchors.centerIn: parent
-                text: "🔒 Direct messages are encrypted point-to-point"
-                color: App.Theme.primary
-                font.pixelSize: App.Theme.captionSize
+                spacing: Core.Theme.spacingSmall
+                Core.MaterialIcon {
+                    name: "lock"
+                    size: 12
+                    iconColor: Core.Theme.success
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+                Text {
+                    text: "ENCRYPTED"
+                    color: Core.Theme.success
+                    font.pixelSize: 10
+                    font.family: Core.Theme.fontFamilyMono
+                    font.letterSpacing: 1
+                }
             }
         }
 
@@ -253,170 +216,186 @@ Rectangle {
             id: messageList
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.margins: Core.Theme.spacingMedium
             clip: true
-            spacing: App.Theme.spacingSmall
+            spacing: 12
             verticalLayoutDirection: ListView.TopToBottom
 
-            model: messages
+            model: messagesModel
 
             delegate: Item {
                 width: messageList.width
-                height: messageBubble.height + App.Theme.spacingSmall
+                height: contentCol.height
 
-                property bool isMine: modelData.is_mine || modelData.from_node === "!00000001"
+                property bool isMine: model.is_mine || model.from_node === "!00000001"
 
-                Rectangle {
-                    id: messageBubble
-                    width: Math.min(parent.width * 0.8, messageContent.implicitWidth + 24)
-                    height: messageContent.implicitHeight + 16
-                    radius: 12
-                    color: isMine ? App.Theme.primary : App.Theme.surface
-                    anchors.right: isMine ? parent.right : undefined
-                    anchors.left: isMine ? undefined : parent.left
-                    anchors.margins: App.Theme.spacingSmall
+                Column {
+                    id: contentCol
+                    width: parent.width
+                    spacing: 4
 
-                    ColumnLayout {
-                        id: messageContent
-                        anchors.fill: parent
-                        anchors.margins: 8
-                        spacing: 4
+                    // Message bubble - aligned left or right
+                    Rectangle {
+                        id: bubble
+                        anchors.left: isMine ? undefined : parent.left
+                        anchors.right: isMine ? parent.right : undefined
+                        width: Math.min(parent.width * 0.85, msgText.implicitWidth + 24)
+                        height: msgText.height + 24
+                        color: isMine ? Qt.rgba(Core.Theme.divider.r, Core.Theme.divider.g, Core.Theme.divider.b, 0.3) : Core.Theme.tacticalCard
+                        border.color: isMine ? Qt.rgba(Core.Theme.success.r, Core.Theme.success.g, Core.Theme.success.b, 0.4) : Core.Theme.divider
+                        border.width: 1
+                        radius: 8
+                        opacity: model.delivery_status === "sending" ? 0.7 : 1.0
 
-                        // Message text
-                        Text {
-                            text: modelData.text
-                            color: isMine ? "#FFFFFF" : App.Theme.textPrimary
-                            font.pixelSize: App.Theme.bodySize
-                            wrapMode: Text.WordWrap
-                            Layout.maximumWidth: messageList.width * 0.75
+                        // Small corner for sent messages (top-right)
+                        Rectangle {
+                            visible: isMine
+                            anchors.top: parent.top
+                            anchors.right: parent.right
+                            width: 4; height: 4
+                            color: parent.color
+                        }
+                        // Small corner for received messages (top-left)
+                        Rectangle {
+                            visible: !isMine
+                            anchors.top: parent.top
+                            anchors.left: parent.left
+                            width: 4; height: 4
+                            color: parent.color
                         }
 
-                        // Timestamp and delivery status
-                        RowLayout {
-                            Layout.alignment: Qt.AlignRight
-                            spacing: 4
+                        Text {
+                            id: msgText
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.margins: 12
+                            width: Math.min(implicitWidth, parent.parent.width * 0.85 - 24)
+                            text: model.text
+                            color: isMine ? "#FFFFFF" : "#E5E7EB"
+                            font.pixelSize: 14
+                            wrapMode: Text.WordWrap
+                            lineHeight: 1.4
+                        }
+                    }
 
-                            Text {
-                                text: formatTime(modelData.timestamp)
-                                color: isMine ? "#CCCCCC" : App.Theme.textSecondary
-                                font.pixelSize: 10
-                            }
+                    // Timestamp (below bubble)
+                    Row {
+                        anchors.left: isMine ? undefined : parent.left
+                        anchors.right: isMine ? parent.right : undefined
+                        spacing: 4
+                        opacity: 0.8
 
-                            // Delivery status icon (for sent messages)
-                            Text {
-                                visible: isMine
-                                text: getDeliveryIcon(modelData.delivery_status)
-                                color: getDeliveryColor(modelData.delivery_status)
-                                font.pixelSize: 12
-                            }
+                        Text {
+                            text: model.delivery_status === "sending" ? "Sending..." : formatTime(model.timestamp)
+                            color: Qt.rgba(Core.Theme.textSecondary.r, Core.Theme.textSecondary.g, Core.Theme.textSecondary.b, 0.5)
+                            font.pixelSize: 10
+                            font.family: Core.Theme.fontFamilyMono
+                        }
+
+                        // Delivery status icon (sent messages only, using text for reliability)
+                        Text {
+                            visible: isMine
+                            text: model.delivery_status === "delivered" ? "✓✓" : (model.delivery_status === "pending" ? "◷" : "✓")
+                            color: model.delivery_status === "delivered" ? Core.Theme.success : Core.Theme.textSecondary
+                            font.pixelSize: 12
+                            anchors.verticalCenter: parent.verticalCenter
                         }
                     }
                 }
             }
 
-            // Empty state
             Text {
-                visible: messages.length === 0
+                visible: messagesModel.count === 0
                 anchors.centerIn: parent
-                text: "No messages yet\n\nStart a private conversation!"
-                color: App.Theme.textSecondary
-                font.pixelSize: App.Theme.bodySize
+                text: "No messages yet\n\nStart a conversation!"
+                color: Core.Theme.textSecondary
+                font.pixelSize: Core.Theme.bodySize
                 horizontalAlignment: Text.AlignHCenter
             }
 
-            // Scroll to bottom on new messages
-            onCountChanged: {
-                positionViewAtEnd()
+            onCountChanged: positionViewAtEnd()
+        }
+
+        // Input footer
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 70
+            color: Qt.rgba(Core.Theme.background.r, Core.Theme.background.g, Core.Theme.background.b, 0.95)
+
+            Rectangle {
+                anchors.top: parent.top
+                width: parent.width
+                height: 1
+                color: Core.Theme.divider
             }
-        }
-
-        // Divider
-        Rectangle {
-            Layout.fillWidth: true
-            height: 1
-            color: App.Theme.divider
-        }
-
-        // Offline warning
-        Rectangle {
-            Layout.fillWidth: true
-            height: !is_online ? 32 : 0
-            visible: !is_online
-            color: App.Theme.warning
-
-            Text {
-                anchors.centerIn: parent
-                text: "⚠️ Node is offline - message will be delivered when online"
-                color: "#000000"
-                font.pixelSize: App.Theme.captionSize
-            }
-
-            Behavior on height { NumberAnimation { duration: 200 } }
-        }
-
-        // Input bar
-        Rectangle {
-            Layout.fillWidth: true
-            height: 60
-            color: App.Theme.surface
 
             RowLayout {
                 anchors.fill: parent
-                anchors.margins: App.Theme.spacingSmall
-                spacing: App.Theme.spacingSmall
+                anchors.margins: Core.Theme.spacingMedium
+                spacing: Core.Theme.spacingSmall
 
-                TextField {
-                    id: messageInput
+                // Input field
+                Rectangle {
                     Layout.fillWidth: true
-                    placeholderText: "Message " + (node_alias || node_name || "...")
-                    font.pixelSize: App.Theme.bodySize
+                    height: 44
+                    radius: 8
+                    color: Core.Theme.background
+                    border.color: messageInput.activeFocus ? Core.Theme.primary : Core.Theme.divider
+                    border.width: 1
 
-                    Keys.onReturnPressed: {
-                        sendMessage(text)
+                    TextInput {
+                        id: messageInput
+                        anchors.fill: parent
+                        anchors.margins: 12
+                        verticalAlignment: TextInput.AlignVCenter
+                        color: Core.Theme.textPrimary
+                        font.pixelSize: 14
+                        font.family: Core.Theme.fontFamilyMono
+                        clip: true
+
+                        Text {
+                            anchors.fill: parent
+                            verticalAlignment: Text.AlignVCenter
+                            text: "Message " + (node_alias || node_name || "...") + "..."
+                            color: Qt.rgba(Core.Theme.textSecondary.r, Core.Theme.textSecondary.g, Core.Theme.textSecondary.b, 0.3)
+                            font: messageInput.font
+                            visible: !messageInput.text && !messageInput.activeFocus
+                        }
+
+                        Keys.onReturnPressed: sendMessage(text)
                     }
                 }
 
-                Button {
-                    id: sendButton
-                    text: "Send"
-                    enabled: messageInput.text.trim().length > 0
-                    onClicked: {
-                        sendMessage(messageInput.text)
+                // Send button (icon only)
+                Rectangle {
+                    width: 44
+                    height: 44
+                    radius: 8
+                    color: sendMouse.pressed ? Qt.darker(Core.Theme.primary, 1.1) : Core.Theme.primary
+                    border.color: Qt.rgba(Core.Theme.primary.r, Core.Theme.primary.g, Core.Theme.primary.b, 0.5)
+
+                    Core.MaterialIcon {
+                        anchors.centerIn: parent
+                        name: "send"
+                        size: 20
+                        iconColor: Core.Theme.textPrimary
+                    }
+
+                    MouseArea {
+                        id: sendMouse
+                        anchors.fill: parent
+                        onClicked: sendMessage(messageInput.text)
                     }
                 }
             }
         }
     }
 
-    // Helper function to format timestamp
     function formatTime(isoString) {
         if (!isoString) return ""
         var date = new Date(isoString)
         var hours = date.getHours().toString().padStart(2, '0')
         var mins = date.getMinutes().toString().padStart(2, '0')
         return hours + ":" + mins
-    }
-
-    // Delivery status icon
-    function getDeliveryIcon(status) {
-        switch (status) {
-            case "pending": return "⏳"
-            case "sending": return "⏳"
-            case "sent": return "✓"
-            case "delivered": return "✓✓"
-            case "failed": return "❌"
-            default: return "✓"
-        }
-    }
-
-    // Delivery status color
-    function getDeliveryColor(status) {
-        switch (status) {
-            case "pending": return "#AAAAAA"
-            case "sending": return "#AAAAAA"
-            case "sent": return "#CCCCCC"
-            case "delivered": return "#88FF88"
-            case "failed": return App.Theme.error
-            default: return "#CCCCCC"
-        }
     }
 }

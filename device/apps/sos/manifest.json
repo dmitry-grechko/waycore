@@ -1,0 +1,19 @@
+{
+  "id": "com.waycore.sos",
+  "name": "SOS",
+  "version": "1.0.0",
+  "description": "Emergency SOS beacon with mesh broadcast and sensory alerts",
+  "icon": "alert",
+  "category": "emergency",
+  "entry": {
+    "qml": "qml/SOSMain.qml"
+  },
+  "permissions": [
+    "mesh.send",
+    "audio.play",
+    "flashlight.control",
+    "gps.read"
+  ],
+  "tier": 1,
+  "enabled": true
+}

@@ -1,11 +1,16 @@
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import "." as Core
+import "./components" as Components
 
 /**
- * Home - Main home screen with all apps in a grid
+ * Home - Tactical app launcher with grid background
  *
- * Shows all apps sorted by tier and name, with Settings always last.
+ * Features:
+ * - Tactical grid background pattern
+ * - Scanline overlay effect
+ * - 3-column app grid with tactical styling
+ * - System info panel at bottom
  */
 Rectangle {
     id: home
@@ -22,10 +27,7 @@ Rectangle {
         var apps = []
 
         if (typeof AppBridge !== "undefined" && AppBridge) {
-            // Get all apps
             var allApps = AppBridge.allApps
-
-            // Separate settings from other apps
             var settingsApp = null
             var otherApps = []
 
@@ -80,53 +82,134 @@ Rectangle {
         }
     }
 
-    // Title header
-    Text {
-        id: title
-        text: "WAYCORE"
-        color: Core.Theme.textPrimary
-        font.pixelSize: Core.Theme.h2Size
-        font.weight: Font.Bold
-        font.letterSpacing: 2
-        anchors.top: parent.top
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: Core.Theme.spacingMedium
+    // === BACKGROUND LAYERS ===
+
+    // Tactical grid pattern background
+    Canvas {
+        id: gridPattern
+        anchors.fill: parent
+        z: 0
+        opacity: 0.15
+
+        onPaint: {
+            var ctx = getContext("2d")
+            ctx.reset()
+            ctx.strokeStyle = Core.Theme.divider
+            ctx.lineWidth = 1
+
+            var gridSize = Core.Theme.gridSize
+
+            // Vertical lines
+            for (var x = 0; x <= width; x += gridSize) {
+                ctx.beginPath()
+                ctx.moveTo(x, 0)
+                ctx.lineTo(x, height)
+                ctx.stroke()
+            }
+
+            // Horizontal lines
+            for (var y = 0; y <= height; y += gridSize) {
+                ctx.beginPath()
+                ctx.moveTo(0, y)
+                ctx.lineTo(width, y)
+                ctx.stroke()
+            }
+        }
+
+        // Repaint when size changes
+        onWidthChanged: requestPaint()
+        onHeightChanged: requestPaint()
     }
 
-    // Grid of all apps
-    GridView {
-        id: appGrid
-        anchors.top: title.bottom
-        anchors.topMargin: Core.Theme.spacingMedium
-        anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.margins: Core.Theme.spacingSmall
+    // Scanline overlay effect
+    Rectangle {
+        id: scanlineOverlay
+        anchors.fill: parent
+        z: 50
+        opacity: 0.15
 
-        cellWidth: width / 3
-        cellHeight: 110
+        gradient: Gradient {
+            orientation: Gradient.Vertical
+            GradientStop { position: 0.0; color: "transparent" }
+            GradientStop { position: 0.5; color: "transparent" }
+            GradientStop { position: 0.5; color: Qt.rgba(0, 0, 0, 0.2) }
+            GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.2) }
+        }
 
-        model: appList
+        // Repeat pattern effect using a second overlay
+        Canvas {
+            anchors.fill: parent
+            opacity: 0.5
 
-        delegate: Item {
-            width: appGrid.cellWidth
-            height: appGrid.cellHeight
+            onPaint: {
+                var ctx = getContext("2d")
+                ctx.reset()
 
-            Core.AppTile {
-                anchors.fill: parent
-                anchors.margins: Core.Theme.spacingXS
-
-                appId: modelData.appId
-                appName: modelData.name
-                appIcon: modelData.icon
-                isEmergency: modelData.isEmergency
-                compact: true
-
-                onClicked: {
-                    console.log("Home: Opening", modelData.appId)
-                    home.navigateToApp(modelData.appId)
+                // Create scanline pattern every 4 pixels
+                for (var y = 0; y < height; y += 4) {
+                    ctx.fillStyle = Qt.rgba(0, 0, 0, 0.15)
+                    ctx.fillRect(0, y + 2, width, 2)
                 }
             }
+
+            onHeightChanged: requestPaint()
+            onWidthChanged: requestPaint()
+        }
+    }
+
+    // === MAIN CONTENT ===
+    Item {
+        id: mainContent
+        anchors.fill: parent
+        z: 10
+
+        // App grid
+        GridView {
+            id: appGrid
+            anchors.top: parent.top
+            anchors.topMargin: Core.Theme.spacingMedium
+            anchors.bottom: systemInfoPanel.top
+            anchors.bottomMargin: Core.Theme.spacingMedium
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.leftMargin: Core.Theme.spacingSmall
+            anchors.rightMargin: Core.Theme.spacingSmall
+
+            cellWidth: width / 3
+            cellHeight: cellWidth  // Square tiles
+
+            model: appList
+            clip: true
+
+            delegate: Item {
+                width: appGrid.cellWidth
+                height: appGrid.cellHeight
+
+                Core.AppTile {
+                    anchors.fill: parent
+                    anchors.margins: Core.Theme.spacingXS + 2
+
+                    appId: modelData.appId
+                    appName: modelData.name
+                    appIcon: modelData.icon
+                    isEmergency: modelData.isEmergency
+                    compact: true
+
+                    onClicked: {
+                        console.log("Home: Opening", modelData.appId)
+                        home.navigateToApp(modelData.appId)
+                    }
+                }
+            }
+        }
+
+        // System info panel at bottom
+        Components.SystemInfoPanel {
+            id: systemInfoPanel
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: Core.Theme.spacingMedium
         }
     }
 
@@ -137,5 +220,6 @@ Rectangle {
         icon: "📱"
         title: "No Apps"
         description: "No apps installed"
+        z: 20
     }
 }

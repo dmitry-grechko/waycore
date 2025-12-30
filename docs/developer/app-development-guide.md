@@ -6,7 +6,8 @@ This guide covers everything you need to build apps for the Waycore platform.
 
 ### What is a Waycore App?
 
-A Waycore app is a self-contained module that runs within the Waycore platform. Apps can:
+A Waycore app is a self-contained module that runs within the Waycore platform.
+Apps can:
 
 - Display custom UI using QML
 - Access sensor data (GPS, compass, temperature, etc.)
@@ -47,6 +48,7 @@ python scripts/create-app.py my-app --backend
 ```
 
 This creates:
+
 ```
 device/apps/my-app/
 ├── manifest.json
@@ -129,20 +131,21 @@ cd device/apps/ui && python main.py
 
 ### Directory Layout
 
-| Path | Purpose |
-|------|---------|
+| Path            | Purpose                        |
+| --------------- | ------------------------------ |
 | `manifest.json` | App configuration and metadata |
-| `qml/Main.qml` | Main QML entry point |
-| `qml/*.qml` | Additional QML files |
-| `backend/` | Python backend (optional) |
-| `assets/` | Static assets (images, etc.) |
-| `README.md` | Documentation |
+| `qml/Main.qml`  | Main QML entry point           |
+| `qml/*.qml`     | Additional QML files           |
+| `backend/`      | Python backend (optional)      |
+| `assets/`       | Static assets (images, etc.)   |
+| `README.md`     | Documentation                  |
 
 ### Entry Points
 
 #### QML Entry (Required)
 
 The main QML file must:
+
 1. Be a `Rectangle` or `Item` as the root element
 2. Define `signal closeRequested()` for navigation
 3. Define `property string appId` and `property string appTitle`
@@ -169,6 +172,7 @@ def create_bridge() -> QObject:
 ```
 
 Add to manifest:
+
 ```json
 {
   "entry": {
@@ -182,31 +186,32 @@ Add to manifest:
 
 Apps are organized into tiers:
 
-| Tier | Location | Description |
-|------|----------|-------------|
-| **Tier 1** | Home Grid | Primary apps (max 6 slots) |
-| **Tier 2** | System Hub | Secondary apps |
+| Tier       | Location   | Description                |
+| ---------- | ---------- | -------------------------- |
+| **Tier 1** | Home Grid  | Primary apps (max 6 slots) |
+| **Tier 2** | System Hub | Secondary apps             |
 
 Set tier in manifest:
+
 ```json
 {
   "tier": 1,
-  "homePosition": 3  // Position 0-5 for tier 1 apps
+  "homePosition": 3 // Position 0-5 for tier 1 apps
 }
 ```
 
 ## App Categories
 
-| Category | Description |
-|----------|-------------|
-| `emergency` | Emergency/SOS features |
-| `communication` | Messaging, radio |
-| `navigation` | Maps, compass |
-| `media` | Camera, gallery |
-| `ai` | AI assistants |
-| `sensors` | Sensor monitoring |
-| `utilities` | Tools, notes |
-| `system` | System settings |
+| Category        | Description            |
+| --------------- | ---------------------- |
+| `emergency`     | Emergency/SOS features |
+| `communication` | Messaging, radio       |
+| `navigation`    | Maps, compass          |
+| `media`         | Camera, gallery        |
+| `ai`            | AI assistants          |
+| `sensors`       | Sensor monitoring      |
+| `utilities`     | Tools, notes           |
+| `system`        | System settings        |
 
 ## Permissions
 

@@ -4,7 +4,12 @@ import QtQuick.Layouts 1.15
 import Core as Core
 
 /**
- * NotesList - List view of all notes
+ * NotesList - Tactical-styled list view of all notes
+ *
+ * Uses standardized Core components:
+ * - TacticalBackground for grid + vignette
+ * - PageHeader for header
+ * - ActionBar for bottom actions
  */
 Rectangle {
     id: notesList
@@ -28,22 +33,37 @@ Rectangle {
         }
     }
 
+    // Tactical background (grid + vignette)
+    Core.TacticalBackground {
+        anchors.fill: parent
+        z: 0
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
+        z: 10
 
-        // App bar
-        Core.AppBar {
+        // Header using PageHeader component
+        Core.PageHeader {
             Layout.fillWidth: true
             title: "Notes"
             showBack: true
             onBackClicked: notesList.backRequested()
+        }
 
-            rightContent: Core.Button {
-                text: "+ New"
-                size: "small"
-                variant: "primary"
-                onClicked: notesList.newNoteRequested()
+        // Status bar
+        Rectangle {
+            Layout.fillWidth: true
+            height: 24
+            color: Qt.rgba(Core.Theme.surface.r, Core.Theme.surface.g, Core.Theme.surface.b, 0.2)
+
+            Text {
+                anchors.centerIn: parent
+                text: notes.length + (notes.length === 1 ? " note" : " notes")
+                color: Core.Theme.textSecondary
+                font.pixelSize: 10
+                font.family: Core.Theme.fontFamilyMono
             }
         }
 
@@ -58,57 +78,9 @@ Rectangle {
 
             model: notes
 
-            delegate: Core.Card {
+            delegate: NoteCard {
                 width: listView.width
-                height: 80  // Explicit height for ListView delegate
-                pressable: true
-
-                RowLayout {
-                    anchors.fill: parent
-                    spacing: Core.Theme.spacingSmall
-
-                    Column {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        Layout.alignment: Qt.AlignVCenter
-                        spacing: 4
-
-                        Text {
-                            text: modelData.title || "Untitled"
-                            color: Core.Theme.textPrimary
-                            font.pixelSize: Core.Theme.bodySize
-                            font.weight: Core.Theme.fontWeightBold
-                            elide: Text.ElideRight
-                            width: parent.width
-                        }
-
-                        Text {
-                            text: getPreview(modelData.content)
-                            color: Core.Theme.textSecondary
-                            font.pixelSize: Core.Theme.captionSize
-                            elide: Text.ElideRight
-                            width: parent.width
-                        }
-
-                        Text {
-                            text: formatDate(modelData.updated_at)
-                            color: Core.Theme.textTertiary
-                            font.pixelSize: Core.Theme.smallSize
-                        }
-                    }
-
-                    Core.IconButton {
-                        icon: "🗑️"
-                        size: "small"
-                        Layout.alignment: Qt.AlignVCenter
-                        onClicked: {
-                            deleteConfirmDialog.noteId = modelData.id
-                            deleteConfirmDialog.noteTitle = modelData.title
-                            deleteConfirmDialog.open()
-                        }
-                    }
-                }
-
+                noteData: modelData
                 onClicked: notesList.noteSelected(modelData.id)
             }
 
@@ -116,43 +88,135 @@ Rectangle {
             Core.EmptyState {
                 anchors.centerIn: parent
                 visible: notes.length === 0
-                icon: "📝"
-                title: "No Notes Yet"
-                description: "Tap '+ New' to create your first note"
-                actionText: "Create Note"
+                icon: "edit_note"
+                title: "No Notes"
+                description: "Create your first note"
+                actionText: "New Note"
                 onActionClicked: notesList.newNoteRequested()
             }
         }
+
+        // Bottom spacer for action bar
+        Item {
+            Layout.fillWidth: true
+            height: 100
+        }
     }
 
-    // Delete confirmation dialog
-    Core.Dialog {
-        id: deleteConfirmDialog
-        title: "Delete Note?"
-        message: "Delete \"" + noteTitle + "\"? This cannot be undone."
-        confirmText: "Delete"
-        destructive: true
+    // Bottom action bar using ActionBar component
+    Core.ActionBar {
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        z: 50
 
-        property int noteId: -1
-        property string noteTitle: ""
+        primaryText: "New Note"
+        primaryIcon: "plus"
+        onPrimaryClicked: notesList.newNoteRequested()
+    }
 
-        onConfirmed: {
-            if (NotesBridge) {
-                NotesBridge.deleteNote(noteId)
+    // Note Card Component
+    component NoteCard: Rectangle {
+        id: card
+        height: 80
+        radius: Core.Theme.borderRadius
+        color: Core.Theme.background
+        border.color: cardArea.containsMouse ? Core.Theme.divider : Qt.rgba(Core.Theme.divider.r, Core.Theme.divider.g, Core.Theme.divider.b, 0.4)
+        border.width: 1
+
+        property var noteData
+        signal clicked()
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: Core.Theme.spacingMedium
+            anchors.rightMargin: Core.Theme.spacingMedium
+            anchors.topMargin: Core.Theme.spacingMedium
+            anchors.bottomMargin: Core.Theme.spacingMedium
+            spacing: Core.Theme.spacingMedium
+
+            Column {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                spacing: 4
+
+                // Date
+                Text {
+                    text: formatDate(noteData.updated_at)
+                    color: Core.Theme.textSecondary
+                    font.pixelSize: 10
+                    font.family: Core.Theme.fontFamilyMono
+                }
+
+                // Title
+                Text {
+                    text: (noteData.title || "Untitled")
+                    color: cardArea.containsMouse ? Core.Theme.warning : Core.Theme.textPrimary
+                    font.pixelSize: 18
+                    font.weight: Font.Bold
+                    font.family: Core.Theme.fontFamilyMono
+                    font.letterSpacing: 0.5
+                    elide: Text.ElideRight
+                    width: parent.width
+
+                    Behavior on color {
+                        ColorAnimation { duration: 200 }
+                    }
+                }
+
+                // Preview
+                Text {
+                    text: getPreview(noteData.content)
+                    color: Qt.rgba(Core.Theme.textSecondary.r, Core.Theme.textSecondary.g, Core.Theme.textSecondary.b, 0.6)
+                    font.pixelSize: 14
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                    wrapMode: Text.WordWrap
+                    width: parent.width
+                }
             }
+
+            // Chevron
+            Core.MaterialIcon {
+                Layout.alignment: Qt.AlignVCenter
+                name: "chevron-right"
+                size: 24
+                iconColor: cardArea.containsMouse ? Core.Theme.warning : Core.Theme.divider
+
+                Behavior on iconColor {
+                    ColorAnimation { duration: 200 }
+                }
+            }
+        }
+
+        MouseArea {
+            id: cardArea
+            anchors.fill: parent
+            hoverEnabled: true
+            onClicked: card.clicked()
         }
     }
 
     function getPreview(content) {
         if (!content) return "No content"
         var clean = content.replace(/[#*_\-\[\]]/g, "").trim()
-        return clean.substring(0, 60) + (clean.length > 60 ? "..." : "")
+        return clean.substring(0, 80) + (clean.length > 80 ? "..." : "")
     }
 
     function formatDate(isoDate) {
         if (!isoDate) return ""
         var d = new Date(isoDate)
-        return d.toLocaleDateString() + " " + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+        var now = new Date()
+        var diff = now - d
+        var oneDay = 24 * 60 * 60 * 1000
+
+        if (diff < oneDay && d.getDate() === now.getDate()) {
+            return d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " TODAY"
+        } else if (diff < 2 * oneDay) {
+            return d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " YESTERDAY"
+        } else {
+            return d.toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'}).toUpperCase()
+        }
     }
 
     function loadNotes() {

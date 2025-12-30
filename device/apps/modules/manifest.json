@@ -1,0 +1,16 @@
+{
+  "id": "com.waycore.modules",
+  "name": "Modules",
+  "version": "1.0.0",
+  "description": "External hardware module management",
+  "icon": "chip",
+  "category": "system",
+  "entry": {
+    "qml": "qml/ModulesMain.qml"
+  },
+  "permissions": [
+    "hardware.modules"
+  ],
+  "tier": 2,
+  "enabled": true
+}

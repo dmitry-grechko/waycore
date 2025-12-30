@@ -2,20 +2,20 @@ import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
 import "." as Core
+import "./components" as Components
 
 /**
- * QuickActionStrip - Bottom action bar for quick access to critical functions
+ * QuickActionStrip - Tactical quick action dock at bottom
  *
- * Always accessible at the bottom of the screen for:
- * - Flashlight toggle
- * - Quick communications
- * - Screen lock
- * - Power options
+ * Three quick action buttons with tactical styling:
+ * - LIGHT (flashlight toggle)
+ * - LOCK (screen lock)
+ * - POWER (power menu)
  */
 Rectangle {
     id: quickStrip
     height: Core.Theme.quickActionHeight
-    color: Core.Theme.surface
+    color: Core.Theme.background
 
     // Signals for shell integration
     signal navigateToApp(string appId)
@@ -23,7 +23,6 @@ Rectangle {
 
     // State
     property bool flashlightOn: false
-    property int unreadMessages: (MeshBridge && MeshBridge.unreadCount) ? MeshBridge.unreadCount : 0
 
     // Top border
     Rectangle {
@@ -36,46 +35,38 @@ Rectangle {
     RowLayout {
         anchors.fill: parent
         anchors.margins: Core.Theme.spacingMedium
-        spacing: Core.Theme.spacingMedium
+        spacing: Core.Theme.spacingSmall
 
-        // Flashlight
-        Core.QuickAction {
-            icon: flashlightOn ? "🔦" : "🔦"
-            label: "FLASH"
-            active: flashlightOn
+        // LIGHT button (primary, turns bronze when active)
+        TacticalQuickButton {
             Layout.fillWidth: true
-            Layout.preferredHeight: parent.height - Core.Theme.spacingMedium * 2
+            Layout.fillHeight: true
+            iconName: flashlightOn ? "lightbulb-on" : "lightbulb"
+            label: "LIGHT"
+            variant: "primary"
+            active: flashlightOn
 
             onClicked: toggleFlashlight()
         }
 
-        // Communications
-        Core.QuickAction {
-            icon: "📡"
-            label: "COMMS"
-            badge: unreadMessages
+        // LOCK button (primary)
+        TacticalQuickButton {
             Layout.fillWidth: true
-            Layout.preferredHeight: parent.height - Core.Theme.spacingMedium * 2
-
-            onClicked: quickCommsPopup.open()
-        }
-
-        // Lock
-        Core.QuickAction {
-            icon: "🔒"
+            Layout.fillHeight: true
+            iconName: "lock"
             label: "LOCK"
-            Layout.fillWidth: true
-            Layout.preferredHeight: parent.height - Core.Theme.spacingMedium * 2
+            variant: "primary"
 
             onClicked: quickStrip.lockScreen()
         }
 
-        // Power
-        Core.QuickAction {
-            icon: "⚡"
-            label: "POWER"
+        // POWER button (warning)
+        TacticalQuickButton {
             Layout.fillWidth: true
-            Layout.preferredHeight: parent.height - Core.Theme.spacingMedium * 2
+            Layout.fillHeight: true
+            iconName: "power"
+            label: "POWER"
+            variant: "warning"
 
             onClicked: powerMenu.open()
         }
@@ -84,116 +75,99 @@ Rectangle {
     // Flashlight toggle
     function toggleFlashlight() {
         flashlightOn = !flashlightOn
-        // TODO: Implement actual flashlight control via hardware bridge
         console.log("Flashlight:", flashlightOn ? "ON" : "OFF")
     }
 
-    // Quick Comms Popup
-    Popup {
-        id: quickCommsPopup
-        parent: Overlay.overlay
-        x: (parent.width - width) / 2
-        y: parent.height - quickStrip.height - height - Core.Theme.spacingMedium
-        width: parent.width - Core.Theme.spacingLarge * 2
-        height: 300
-        modal: true
-        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+    // Tactical Quick Button component
+    component TacticalQuickButton: Rectangle {
+        id: btn
 
-        background: Rectangle {
-            color: Core.Theme.surface
-            radius: Core.Theme.borderRadiusLarge
-            border.color: Core.Theme.divider
+        property string iconName: ""
+        property string label: ""
+        property string variant: "primary"  // primary | warning
+        property bool active: false
+
+        signal clicked()
+
+        radius: Core.Theme.borderRadius
+
+        // Colors based on variant and active state
+        color: {
+            if (variant === "warning") {
+                return mouseArea.pressed
+                    ? Qt.rgba(Core.Theme.warning.r, Core.Theme.warning.g, Core.Theme.warning.b, 0.4)
+                    : Qt.rgba(Core.Theme.warning.r, Core.Theme.warning.g, Core.Theme.warning.b, 0.2)
+            }
+            // Active state - use warning/bronze color
+            if (active) {
+                return mouseArea.pressed
+                    ? Qt.rgba(Core.Theme.warning.r, Core.Theme.warning.g, Core.Theme.warning.b, 0.4)
+                    : Qt.rgba(Core.Theme.warning.r, Core.Theme.warning.g, Core.Theme.warning.b, 0.25)
+            }
+            // Default primary variant
+            return mouseArea.pressed
+                ? Qt.darker(Core.Theme.primary, 1.2)
+                : Core.Theme.primary
         }
 
-        contentItem: Column {
-            spacing: Core.Theme.spacingMedium
-            padding: Core.Theme.spacingMedium
+        // Border color - warning/bronze when active
+        border.color: {
+            if (variant === "warning" || active) {
+                return Core.Theme.warning
+            }
+            return Core.Theme.divider
+        }
+        border.width: active ? 2 : 1
 
-            // Header
-            RowLayout {
-                width: parent.width - Core.Theme.spacingMedium * 2
+        Column {
+            anchors.centerIn: parent
+            spacing: 4
 
-                Text {
-                    text: "QUICK COMMS"
-                    color: Core.Theme.textSecondary
-                    font.pixelSize: Core.Theme.labelSize
-                    font.weight: Font.Bold
-                    font.letterSpacing: 1
-                    Layout.fillWidth: true
-                }
+            Components.MaterialIcon {
+                anchors.horizontalCenter: parent.horizontalCenter
+                name: btn.iconName
+                size: 24
+                // Use warning color when active or warning variant
+                iconColor: (variant === "warning" || btn.active) ? Core.Theme.warning : Core.Theme.textPrimary
 
-                Text {
-                    text: "✕"
-                    color: Core.Theme.textSecondary
-                    font.pixelSize: 18
-
-                    MouseArea {
-                        anchors.fill: parent
-                        anchors.margins: -8
-                        onClicked: quickCommsPopup.close()
-                    }
+                Behavior on iconColor {
+                    ColorAnimation { duration: Core.Theme.animationFast }
                 }
             }
 
-            Rectangle {
-                width: parent.width - Core.Theme.spacingMedium * 2
-                height: 1
-                color: Core.Theme.divider
-            }
-
-            // Recent messages (placeholder)
             Text {
-                visible: !MeshBridge || unreadMessages === 0
-                text: "No recent messages"
-                color: Core.Theme.textSecondary
-                font.pixelSize: Core.Theme.bodySize
-            }
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: btn.label
+                // Use warning color when active or warning variant
+                color: (variant === "warning" || btn.active) ? Core.Theme.warning : Core.Theme.textPrimary
+                font.pixelSize: Core.Theme.tinySize
+                font.weight: Font.Bold
+                font.letterSpacing: Core.Theme.letterSpacingNormal
 
-            ListView {
-                visible: MeshBridge && unreadMessages > 0
-                width: parent.width - Core.Theme.spacingMedium * 2
-                height: 150
-                clip: true
-                model: MeshBridge ? MeshBridge.recentMessages : []
-
-                delegate: Rectangle {
-                    width: ListView.view.width
-                    height: 48
-                    color: "transparent"
-
-                    Column {
-                        anchors.fill: parent
-                        anchors.margins: 4
-
-                        Text {
-                            text: modelData.from || "Unknown"
-                            color: Core.Theme.textSecondary
-                            font.pixelSize: Core.Theme.captionSize
-                        }
-                        Text {
-                            text: modelData.text || ""
-                            color: Core.Theme.textPrimary
-                            font.pixelSize: Core.Theme.bodySize
-                            elide: Text.ElideRight
-                            width: parent.width
-                        }
-                    }
+                Behavior on color {
+                    ColorAnimation { duration: Core.Theme.animationFast }
                 }
             }
+        }
 
-            Item { height: Core.Theme.spacingSmall }
+        MouseArea {
+            id: mouseArea
+            anchors.fill: parent
+            onClicked: btn.clicked()
+        }
 
-            // Open full Meshtastic button
-            Core.Button {
-                text: "Open Meshtastic"
-                fullWidth: true
-                variant: "primary"
+        // Press animation
+        scale: mouseArea.pressed ? 0.98 : 1.0
+        Behavior on scale {
+            NumberAnimation { duration: Core.Theme.animationFast }
+        }
 
-                onClicked: {
-                    quickCommsPopup.close()
-                    quickStrip.navigateToApp("com.waycore.meshtastic")
-                }
-            }
+        Behavior on color {
+            ColorAnimation { duration: Core.Theme.animationFast }
+        }
+
+        Behavior on border.color {
+            ColorAnimation { duration: Core.Theme.animationFast }
         }
     }
 
@@ -222,27 +196,28 @@ Rectangle {
                 color: Core.Theme.textSecondary
                 font.pixelSize: Core.Theme.labelSize
                 font.weight: Font.Bold
-                font.letterSpacing: 1
+                font.letterSpacing: Core.Theme.letterSpacingNormal
             }
 
             Item { height: Core.Theme.spacingSmall }
 
             PowerMenuItem {
-                icon: "🔋"
-                label: "Battery Saver"
-                sublabel: "Reduce background activity"
-                toggle: true
-                checked: powerMenu.batterySaverEnabled
-                onClicked: powerMenu.batterySaverEnabled = !powerMenu.batterySaverEnabled
-            }
-
-            PowerMenuItem {
-                icon: "🌙"
+                iconName: "sleep"
                 label: "Sleep Mode"
                 sublabel: "Turn off display, keep radios"
                 onClicked: {
                     powerMenu.close()
                     console.log("Sleep mode activated")
+                }
+            }
+
+            PowerMenuItem {
+                iconName: "restart"
+                label: "Restart"
+                sublabel: "Restart device"
+                onClicked: {
+                    confirmDialog.action = "restart"
+                    confirmDialog.open()
                 }
             }
 
@@ -253,17 +228,7 @@ Rectangle {
             }
 
             PowerMenuItem {
-                icon: "🔄"
-                label: "Restart"
-                sublabel: "Restart device"
-                onClicked: {
-                    confirmDialog.action = "restart"
-                    confirmDialog.open()
-                }
-            }
-
-            PowerMenuItem {
-                icon: "⏹️"
+                iconName: "power"
                 label: "Shutdown"
                 sublabel: "Power off completely"
                 dangerous: true
@@ -273,8 +238,6 @@ Rectangle {
                 }
             }
         }
-
-        property bool batterySaverEnabled: false
     }
 
     // Confirmation Dialog
@@ -348,11 +311,9 @@ Rectangle {
         color: mouseArea.containsMouse ? Core.Theme.surfaceElevated : "transparent"
         radius: Core.Theme.borderRadius
 
-        property string icon: ""
+        property string iconName: ""
         property string label: ""
         property string sublabel: ""
-        property bool toggle: false
-        property bool checked: false
         property bool dangerous: false
 
         signal clicked()
@@ -362,9 +323,10 @@ Rectangle {
             anchors.margins: Core.Theme.spacingSmall
             spacing: Core.Theme.spacingSmall
 
-            Text {
-                text: icon
-                font.pixelSize: 24
+            Components.MaterialIcon {
+                name: iconName
+                size: 24
+                iconColor: dangerous ? Core.Theme.error : Core.Theme.textPrimary
                 Layout.alignment: Qt.AlignVCenter
             }
 
@@ -382,12 +344,6 @@ Rectangle {
                     color: Core.Theme.textSecondary
                     font.pixelSize: Core.Theme.captionSize
                 }
-            }
-
-            Switch {
-                visible: toggle
-                checked: parent.parent.checked
-                Layout.alignment: Qt.AlignVCenter
             }
         }
 

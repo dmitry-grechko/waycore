@@ -1,6 +1,7 @@
 module Core.Components
 
 # Core UI Components
+ActionBar 1.0 ActionBar.qml
 AppBar 1.0 AppBar.qml
 AppTile 1.0 AppTile.qml
 Avatar 1.0 Avatar.qml
@@ -15,6 +16,8 @@ Icon 1.0 Icon.qml
 IconButton 1.0 IconButton.qml
 ListItem 1.0 ListItem.qml
 LoadingIndicator 1.0 LoadingIndicator.qml
+MaterialIcon 1.0 MaterialIcon.qml
+PageHeader 1.0 PageHeader.qml
 ProgressBar 1.0 ProgressBar.qml
 QuickAction 1.0 QuickAction.qml
 ScrollView 1.0 ScrollView.qml
@@ -22,6 +25,11 @@ SignalBars 1.0 SignalBars.qml
 Slider 1.0 Slider.qml
 StatusIndicator 1.0 StatusIndicator.qml
 Switch 1.0 Switch.qml
+SystemInfoPanel 1.0 SystemInfoPanel.qml
 TabBar 1.0 TabBar.qml
+TacticalBackground 1.0 TacticalBackground.qml
+TacticalComboBox 1.0 TacticalComboBox.qml
+TacticalInput 1.0 TacticalInput.qml
+TacticalTextArea 1.0 TacticalTextArea.qml
 TextField 1.0 TextField.qml
 Toast 1.0 Toast.qml

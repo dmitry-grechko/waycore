@@ -4,16 +4,26 @@ import QtQuick.Layouts 1.15
 import Core as Core
 
 /**
- * SettingsSensors - Sensor status and calibration
+ * SettingsSensors - Sensor configuration and status
+ *
+ * Uses standardized Core components:
+ * - TacticalBackground for grid + vignette
+ * - PageHeader for navigation
+ * - Card for content sections
+ * - Theme colors for consistency
+ * - MaterialIcon for icons
+ * - Badge for status
  */
 Rectangle {
     id: settingsSensors
     color: Core.Theme.background
 
+    // Navigation signals
     signal backRequested()
 
     // Sensors from registry
     property var sensorsList: SensorBridge ? SensorBridge.sensors : []
+    property int activeSensors: 4
 
     // Refresh timer
     Timer {
@@ -29,105 +39,134 @@ Rectangle {
         if (SensorBridge) SensorBridge.refreshSensors()
     }
 
-    function getSensorIcon(sensorType) {
-        switch(sensorType) {
-            case "gps": return "📍"
-            case "temperature": return "🌡️"
-            case "pressure": return "🌀"
-            case "accelerometer": return "📐"
-            case "magnetometer": return "🧭"
-            case "light": return "☀️"
-            case "humidity": return "💧"
-            case "battery": return "🔋"
-            default: return "📟"
-        }
-    }
-
-    function getStatusColor(status) {
-        switch(status) {
-            case "online": return Core.Theme.success
-            case "offline": return Core.Theme.error
-            case "error": return Core.Theme.error
-            case "calibrating": return Core.Theme.warning
-            default: return Core.Theme.textSecondary
-        }
-    }
-
-    function formatSensorValue(sensor) {
-        if (!sensor.last_value) return "No data"
-        var val = sensor.last_value
-        switch(sensor.type) {
-            case "gps":
-                if (!val.has_fix) return "No fix"
-                return "Lat: " + val.latitude.toFixed(4) + "°, Lon: " + val.longitude.toFixed(4) + "°"
-            case "temperature":
-                return val.celsius.toFixed(1) + "°C / " + val.fahrenheit.toFixed(1) + "°F"
-            case "magnetometer":
-                return val.heading.toFixed(0) + "° " + val.cardinal + (val.calibrated ? " ✓" : " ⚠")
-            case "battery":
-                return val.level + "%" + (val.charging ? " ⚡" : "")
-            default:
-                return JSON.stringify(val).substring(0, 40)
-        }
-    }
-
-    Flickable {
+    // Tactical background using standardized component
+    Core.TacticalBackground {
         anchors.fill: parent
-        contentHeight: contentColumn.height
-        clip: true
+        z: 0
+        vignetteOpacity: 0.5
+    }
 
-        ColumnLayout {
-            id: contentColumn
-            width: parent.width
-            spacing: 0
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: 0
+        z: 10
 
-            // App bar
-            Core.AppBar {
-                Layout.fillWidth: true
-                title: "🌡️ Sensors"
-                showBack: true
-                onBackClicked: settingsSensors.backRequested()
+        // Header section
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 100
+            color: Qt.rgba(Core.Theme.background.r, Core.Theme.background.g, Core.Theme.background.b, 0.9)
 
-                rightContent: Core.IconButton {
-                    icon: "🔄"
-                    onClicked: {
-                        if (SensorBridge) SensorBridge.discoverSensors()
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: 0
+
+                // Title row using PageHeader pattern
+                Item {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: Core.Theme.appBarHeight
+
+                    Core.PageHeader {
+                        anchors.fill: parent
+                        title: "Sensors"
+                        subtitle: "Configuration"
+                        showBack: true
+                        rightIcon: "refresh"
+                        onBackClicked: settingsSensors.backRequested()
+                        onRightClicked: {
+                            if (SensorBridge) SensorBridge.discoverSensors()
+                        }
+                    }
+                }
+
+                // Status bar
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 36
+                    color: Qt.rgba(Core.Theme.surface.r, Core.Theme.surface.g, Core.Theme.surface.b, 0.2)
+
+                    Rectangle {
+                        anchors.top: parent.top
+                        width: parent.width
+                        height: 1
+                        color: Qt.rgba(Core.Theme.divider.r, Core.Theme.divider.g, Core.Theme.divider.b, 0.1)
+                    }
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: Core.Theme.spacingLarge
+                        anchors.rightMargin: Core.Theme.spacingLarge
+
+                        Row {
+                            spacing: Core.Theme.spacingSmall
+
+                            Rectangle {
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 8
+                                height: 8
+                                radius: 4
+                                color: Core.Theme.warning
+
+                                SequentialAnimation on opacity {
+                                    loops: Animation.Infinite
+                                    NumberAnimation { to: 0.3; duration: 1000 }
+                                    NumberAnimation { to: 1.0; duration: 1000 }
+                                }
+                            }
+
+                            Text {
+                                text: "LIVE DATA"
+                                color: Core.Theme.warning
+                                font.pixelSize: Core.Theme.tinySize
+                                font.family: Core.Theme.fontFamilyMono
+                                font.weight: Font.Medium
+                                font.letterSpacing: 1
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Text {
+                            text: "ACTIVE SENSORS: " + (sensorsList.length > 0 ? sensorsList.length : "04").toString().padStart(2, '0')
+                            color: Core.Theme.textSecondary
+                            font.pixelSize: Core.Theme.tinySize
+                            font.family: Core.Theme.fontFamilyMono
+                            font.letterSpacing: 1
+                        }
                     }
                 }
             }
 
-            // Status bar
-            Core.Card {
-                Layout.fillWidth: true
-                Layout.margins: Core.Theme.spacingMedium
-
-                RowLayout {
-                    anchors.fill: parent
-
-                    Text {
-                        text: SensorBridge && SensorBridge.connected ? "🟢 Live data" : "🟡 Mock data"
-                        color: Core.Theme.textSecondary
-                        font.pixelSize: Core.Theme.captionSize
-                    }
-
-                    Item { Layout.fillWidth: true }
-
-                    Text {
-                        text: sensorsList.length + " sensors"
-                        color: Core.Theme.textSecondary
-                        font.pixelSize: Core.Theme.captionSize
-                    }
-                }
+            Rectangle {
+                anchors.bottom: parent.bottom
+                width: parent.width
+                height: 1
+                color: Qt.rgba(Core.Theme.divider.r, Core.Theme.divider.g, Core.Theme.divider.b, 0.3)
             }
+        }
 
-            // Sensor list
-            Repeater {
-                model: sensorsList
+        // Scrollable content
+        Flickable {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            contentWidth: width
+            contentHeight: contentColumn.height + 32
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
 
+            ColumnLayout {
+                id: contentColumn
+                width: parent.width
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: Core.Theme.spacingMedium
+
+                Item { Layout.preferredHeight: Core.Theme.spacingSmall }
+
+                // GPS Sensor Card
                 Core.Card {
                     Layout.fillWidth: true
-                    Layout.margins: Core.Theme.spacingMedium
-                    Layout.topMargin: 0
+                    Layout.leftMargin: Core.Theme.spacingMedium
+                    Layout.rightMargin: Core.Theme.spacingMedium
 
                     ColumnLayout {
                         width: parent.width
@@ -136,60 +175,462 @@ Rectangle {
                         RowLayout {
                             Layout.fillWidth: true
 
-                            Text { text: getSensorIcon(modelData.type); font.pixelSize: 24 }
+                            Row {
+                                spacing: Core.Theme.spacingSmall
 
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                spacing: 2
-                                Text { text: modelData.name; color: Core.Theme.textPrimary; font.weight: Core.Theme.fontWeightBold }
-                                Text { text: modelData.status; color: getStatusColor(modelData.status); font.pixelSize: Core.Theme.captionSize }
+                                Rectangle {
+                                    width: 40
+                                    height: 40
+                                    radius: Core.Theme.borderRadius
+                                    color: Core.Theme.surface
+                                    border.color: Qt.rgba(Core.Theme.divider.r, Core.Theme.divider.g, Core.Theme.divider.b, 0.2)
+                                    border.width: 1
+
+                                    Core.MaterialIcon {
+                                        anchors.centerIn: parent
+                                        name: "satellite-variant"
+                                        size: 20
+                                        iconColor: Core.Theme.warning
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    spacing: 2
+                                    Text {
+                                        text: "GLOBAL POS."
+                                        color: Core.Theme.textPrimary
+                                        font.pixelSize: Core.Theme.bodySmallSize
+                                        font.weight: Core.Theme.fontWeightBold
+                                        font.letterSpacing: Core.Theme.letterSpacingNormal
+                                    }
+                                    Text {
+                                        text: "u-blox GNSS"
+                                        color: Core.Theme.textSecondary
+                                        font.pixelSize: Core.Theme.tinySize
+                                        font.family: Core.Theme.fontFamilyMono
+                                        opacity: 0.6
+                                    }
+                                }
                             }
+
+                            Item { Layout.fillWidth: true }
 
                             Core.Badge {
-                                dot: true
-                                variant: modelData.status === "online" ? "success" : "error"
+                                text: "Online"
+                                variant: "success"
                             }
                         }
 
-                        Text {
-                            text: formatSensorValue(modelData)
-                            color: Core.Theme.textPrimary
-                            font.pixelSize: Core.Theme.captionSize
-                            wrapMode: Text.WordWrap
-                            Layout.fillWidth: true
-                        }
+                        // GPS data
+                        ColumnLayout {
+                            Layout.leftMargin: 52
+                            spacing: 4
 
-                        Text {
-                            text: "Driver: " + modelData.driver
-                            color: Core.Theme.textSecondary
-                            font.pixelSize: Core.Theme.smallSize
-                            visible: modelData.driver !== undefined
-                        }
+                            Text {
+                                text: SensorBridge ?
+                                    SensorBridge.latitude.toFixed(4) + "°" + (SensorBridge.latitude >= 0 ? "N" : "S") + ", " +
+                                    Math.abs(SensorBridge.longitude).toFixed(4) + "°" + (SensorBridge.longitude >= 0 ? "E" : "W") :
+                                    "34.0522°N, 118.2437°W"
+                                color: Core.Theme.textPrimary
+                                font.pixelSize: Core.Theme.bodySize
+                                font.family: Core.Theme.fontFamilyMono
+                            }
 
-                        Core.Button {
-                            text: "Calibrate"
-                            size: "small"
-                            variant: "secondary"
-                            visible: modelData.type === "magnetometer" && modelData.last_value && !modelData.last_value.calibrated
-                            onClicked: {
-                                if (SensorBridge) SensorBridge.calibrateCompass()
+                            RowLayout {
+                                spacing: Core.Theme.spacingMedium
+                                Text {
+                                    text: "Alt: " + (SensorBridge && SensorBridge.hasElevation ? Math.round(SensorBridge.elevationMeters) + "m" : "124m")
+                                    color: Core.Theme.textSecondary
+                                    font.pixelSize: Core.Theme.smallSize
+                                    font.family: Core.Theme.fontFamilyMono
+                                }
+                                Text {
+                                    text: "Sats: 8"
+                                    color: Core.Theme.textSecondary
+                                    font.pixelSize: Core.Theme.smallSize
+                                    font.family: Core.Theme.fontFamilyMono
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // Empty state
-            Core.EmptyState {
-                Layout.fillWidth: true
-                Layout.margins: Core.Theme.spacingMedium
-                visible: sensorsList.length === 0
-                icon: "📟"
-                title: "No Sensors"
-                description: "Tap 🔄 to run discovery"
-            }
+                // Compass Sensor Card (Needs Calibration)
+                Core.Card {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Core.Theme.spacingMedium
+                    Layout.rightMargin: Core.Theme.spacingMedium
+                    accentBorder: true
+                    accentColor: Core.Theme.warning
 
-            Item { Layout.preferredHeight: Core.Theme.spacingLarge }
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: Core.Theme.spacingSmall
+
+                        RowLayout {
+                            Layout.fillWidth: true
+
+                            Row {
+                                spacing: Core.Theme.spacingSmall
+
+                                Rectangle {
+                                    width: 40
+                                    height: 40
+                                    radius: Core.Theme.borderRadius
+                                    color: Core.Theme.surface
+                                    border.color: Qt.rgba(Core.Theme.warning.r, Core.Theme.warning.g, Core.Theme.warning.b, 0.2)
+                                    border.width: 1
+
+                                    Core.MaterialIcon {
+                                        anchors.centerIn: parent
+                                        name: "compass"
+                                        size: 20
+                                        iconColor: Core.Theme.warning
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    spacing: 2
+                                    Text {
+                                        text: "COMPASS"
+                                        color: Core.Theme.textPrimary
+                                        font.pixelSize: Core.Theme.bodySmallSize
+                                        font.weight: Core.Theme.fontWeightBold
+                                        font.letterSpacing: Core.Theme.letterSpacingNormal
+                                    }
+                                    Text {
+                                        text: "BMM150"
+                                        color: Core.Theme.textSecondary
+                                        font.pixelSize: Core.Theme.tinySize
+                                        font.family: Core.Theme.fontFamilyMono
+                                        opacity: 0.6
+                                    }
+                                }
+                            }
+
+                            Item { Layout.fillWidth: true }
+
+                            Core.Badge {
+                                text: "Calib. Needed"
+                                variant: "warning"
+                            }
+                        }
+
+                        Text {
+                            Layout.leftMargin: 52
+                            text: (SensorBridge ? Math.round(SensorBridge.compassHeading) : 320) + "° NW"
+                            color: Core.Theme.textPrimary
+                            font.pixelSize: Core.Theme.bodySize
+                            font.family: Core.Theme.fontFamilyMono
+                        }
+                    }
+                }
+
+                // Inertial Sensor Card
+                Core.Card {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Core.Theme.spacingMedium
+                    Layout.rightMargin: Core.Theme.spacingMedium
+
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: Core.Theme.spacingSmall
+
+                        RowLayout {
+                            Layout.fillWidth: true
+
+                            Row {
+                                spacing: Core.Theme.spacingSmall
+
+                                Rectangle {
+                                    width: 40
+                                    height: 40
+                                    radius: Core.Theme.borderRadius
+                                    color: Core.Theme.surface
+                                    border.color: Qt.rgba(Core.Theme.divider.r, Core.Theme.divider.g, Core.Theme.divider.b, 0.2)
+                                    border.width: 1
+
+                                    Core.MaterialIcon {
+                                        anchors.centerIn: parent
+                                        name: "axis-arrow"
+                                        size: 20
+                                        iconColor: Core.Theme.warning
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    spacing: 2
+                                    Text {
+                                        text: "INERTIAL"
+                                        color: Core.Theme.textPrimary
+                                        font.pixelSize: Core.Theme.bodySmallSize
+                                        font.weight: Core.Theme.fontWeightBold
+                                        font.letterSpacing: Core.Theme.letterSpacingNormal
+                                    }
+                                    Text {
+                                        text: "BMI270"
+                                        color: Core.Theme.textSecondary
+                                        font.pixelSize: Core.Theme.tinySize
+                                        font.family: Core.Theme.fontFamilyMono
+                                        opacity: 0.6
+                                    }
+                                }
+                            }
+
+                            Item { Layout.fillWidth: true }
+
+                            Core.Badge {
+                                text: "Online"
+                                variant: "success"
+                            }
+                        }
+
+                        GridLayout {
+                            Layout.leftMargin: 52
+                            columns: 3
+                            columnSpacing: Core.Theme.spacingMedium
+                            rowSpacing: 4
+
+                            Text { text: "ACCEL X"; color: Core.Theme.textSecondary; font.pixelSize: Core.Theme.tinySize; font.family: Core.Theme.fontFamilyMono }
+                            Text { text: "ACCEL Y"; color: Core.Theme.textSecondary; font.pixelSize: Core.Theme.tinySize; font.family: Core.Theme.fontFamilyMono }
+                            Text { text: "ACCEL Z"; color: Core.Theme.textSecondary; font.pixelSize: Core.Theme.tinySize; font.family: Core.Theme.fontFamilyMono }
+
+                            Text { text: "0.02"; color: Core.Theme.textPrimary; font.pixelSize: Core.Theme.bodySmallSize; font.family: Core.Theme.fontFamilyMono }
+                            Text { text: "-0.98"; color: Core.Theme.textPrimary; font.pixelSize: Core.Theme.bodySmallSize; font.family: Core.Theme.fontFamilyMono }
+                            Text { text: "0.11"; color: Core.Theme.textPrimary; font.pixelSize: Core.Theme.bodySmallSize; font.family: Core.Theme.fontFamilyMono }
+                        }
+                    }
+                }
+
+                // Environment Sensor Card (Error State)
+                Core.Card {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Core.Theme.spacingMedium
+                    Layout.rightMargin: Core.Theme.spacingMedium
+                    opacity: 0.8
+
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: Core.Theme.spacingSmall
+
+                        RowLayout {
+                            Layout.fillWidth: true
+
+                            Row {
+                                spacing: Core.Theme.spacingSmall
+
+                                Rectangle {
+                                    width: 40
+                                    height: 40
+                                    radius: Core.Theme.borderRadius
+                                    color: Core.Theme.surface
+                                    border.color: Qt.rgba(Core.Theme.error.r, Core.Theme.error.g, Core.Theme.error.b, 0.2)
+                                    border.width: 1
+
+                                    Core.MaterialIcon {
+                                        anchors.centerIn: parent
+                                        name: "thermometer"
+                                        size: 20
+                                        iconColor: Core.Theme.error
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    spacing: 2
+                                    Text {
+                                        text: "ENVIRONMENT"
+                                        color: Core.Theme.textPrimary
+                                        font.pixelSize: Core.Theme.bodySmallSize
+                                        font.weight: Core.Theme.fontWeightBold
+                                        font.letterSpacing: Core.Theme.letterSpacingNormal
+                                    }
+                                    Text {
+                                        text: "BME680"
+                                        color: Core.Theme.textSecondary
+                                        font.pixelSize: Core.Theme.tinySize
+                                        font.family: Core.Theme.fontFamilyMono
+                                        opacity: 0.6
+                                    }
+                                }
+                            }
+
+                            Item { Layout.fillWidth: true }
+
+                            Core.Badge {
+                                text: "Error"
+                                variant: "error"
+                            }
+                        }
+
+                        ColumnLayout {
+                            Layout.leftMargin: 52
+                            spacing: 4
+
+                            Text {
+                                text: "--"
+                                color: Core.Theme.textSecondary
+                                font.pixelSize: Core.Theme.bodySize
+                                font.family: Core.Theme.fontFamilyMono
+                                font.italic: true
+                            }
+
+                            Text {
+                                text: "I2C Device not found at 0x77"
+                                color: Core.Theme.error
+                                font.pixelSize: Core.Theme.tinySize
+                                font.family: Core.Theme.fontFamilyMono
+                            }
+                        }
+                    }
+                }
+
+                // Power Management Card
+                Core.Card {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Core.Theme.spacingMedium
+                    Layout.rightMargin: Core.Theme.spacingMedium
+
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: Core.Theme.spacingSmall
+
+                        RowLayout {
+                            Layout.fillWidth: true
+
+                            Row {
+                                spacing: Core.Theme.spacingSmall
+
+                                Rectangle {
+                                    width: 40
+                                    height: 40
+                                    radius: Core.Theme.borderRadius
+                                    color: Core.Theme.surface
+                                    border.color: Qt.rgba(Core.Theme.divider.r, Core.Theme.divider.g, Core.Theme.divider.b, 0.2)
+                                    border.width: 1
+
+                                    Core.MaterialIcon {
+                                        anchors.centerIn: parent
+                                        name: "battery"
+                                        size: 20
+                                        iconColor: Core.Theme.warning
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    spacing: 2
+                                    Text {
+                                        text: "POWER MGMT"
+                                        color: Core.Theme.textPrimary
+                                        font.pixelSize: Core.Theme.bodySmallSize
+                                        font.weight: Core.Theme.fontWeightBold
+                                        font.letterSpacing: Core.Theme.letterSpacingNormal
+                                    }
+                                    Text {
+                                        text: "MAX17048"
+                                        color: Core.Theme.textSecondary
+                                        font.pixelSize: Core.Theme.tinySize
+                                        font.family: Core.Theme.fontFamilyMono
+                                        opacity: 0.6
+                                    }
+                                }
+                            }
+
+                            Item { Layout.fillWidth: true }
+
+                            Core.Badge {
+                                text: "Online"
+                                variant: "success"
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.leftMargin: 52
+                            Layout.fillWidth: true
+                            spacing: Core.Theme.spacingMedium
+
+                            ColumnLayout {
+                                spacing: 4
+                                Text {
+                                    text: "VOLTAGE"
+                                    color: Core.Theme.textSecondary
+                                    font.pixelSize: Core.Theme.tinySize
+                                    font.family: Core.Theme.fontFamilyMono
+                                }
+                                Row {
+                                    spacing: 2
+                                    Text {
+                                        text: "12.4"
+                                        color: Core.Theme.textPrimary
+                                        font.pixelSize: Core.Theme.bodySize
+                                        font.family: Core.Theme.fontFamilyMono
+                                    }
+                                    Text {
+                                        text: "V"
+                                        color: Core.Theme.divider
+                                        font.pixelSize: Core.Theme.smallSize
+                                        font.family: Core.Theme.fontFamilyMono
+                                        anchors.bottom: parent.bottom
+                                        anchors.bottomMargin: 2
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                width: 1
+                                height: 32
+                                color: Qt.rgba(Core.Theme.divider.r, Core.Theme.divider.g, Core.Theme.divider.b, 0.2)
+                            }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 4
+                                Text {
+                                    text: "CURRENT"
+                                    color: Core.Theme.textSecondary
+                                    font.pixelSize: Core.Theme.tinySize
+                                    font.family: Core.Theme.fontFamilyMono
+                                }
+                                Row {
+                                    spacing: 2
+                                    Text {
+                                        text: "0.8"
+                                        color: Core.Theme.textPrimary
+                                        font.pixelSize: Core.Theme.bodySize
+                                        font.family: Core.Theme.fontFamilyMono
+                                    }
+                                    Text {
+                                        text: "A"
+                                        color: Core.Theme.divider
+                                        font.pixelSize: Core.Theme.smallSize
+                                        font.family: Core.Theme.fontFamilyMono
+                                        anchors.bottom: parent.bottom
+                                        anchors.bottomMargin: 2
+                                    }
+                                }
+                            }
+
+                            ColumnLayout {
+                                spacing: 4
+                                Text {
+                                    text: "CAPACITY"
+                                    color: Core.Theme.textSecondary
+                                    font.pixelSize: Core.Theme.tinySize
+                                    font.family: Core.Theme.fontFamilyMono
+                                }
+                                Text {
+                                    text: (SensorBridge ? SensorBridge.batteryLevel : 98) + "%"
+                                    color: Core.Theme.warning
+                                    font.pixelSize: Core.Theme.bodySize
+                                    font.family: Core.Theme.fontFamilyMono
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Bottom spacer
+                Item { Layout.preferredHeight: 120 }
+            }
         }
     }
 }

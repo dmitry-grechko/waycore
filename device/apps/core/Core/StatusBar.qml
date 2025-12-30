@@ -2,37 +2,44 @@ import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
 import "." as Core
+import "./components" as Components
 
 /**
- * StatusBar - Information-dense status bar for field use
+ * StatusBar - Tactical HUD-style status bar
  *
  * Features:
- * - Battery level with percentage
- * - 24h time format
- * - Temperature (from sensors)
- * - Connectivity indicators (LTE, WiFi, GPS, Mesh)
+ * - 24h time display (prominent)
+ * - Battery level with icon
+ * - Signal strength in dBm
+ * - GPS coordinates in military format
+ * - Status indicator dots (pulsing)
  * - Long-press for detailed status popup
  */
 Rectangle {
     id: statusBar
     height: Core.Theme.statusBarHeight
-    color: "#000000"  // Pure black for OLED power savings
+    color: Qt.rgba(Core.Theme.background.r, Core.Theme.background.g, Core.Theme.background.b, 0.95)
 
     // Properties from SensorBridge or mocked defaults
-    property int batteryLevel: (SensorBridge && typeof SensorBridge.batteryLevel !== "undefined") ? SensorBridge.batteryLevel : 85
+    property int batteryLevel: (SensorBridge && typeof SensorBridge.batteryLevel !== "undefined") ? SensorBridge.batteryLevel : 84
     property bool isCharging: (SensorBridge && typeof SensorBridge.isCharging !== "undefined") ? SensorBridge.isCharging : false
     property var temperature: getTemperatureValue()
-    property bool hasLTE: false  // Future implementation
+    property bool hasLTE: false
     property bool hasWiFi: (SensorBridge && typeof SensorBridge.connected !== "undefined") ? SensorBridge.connected : true
-    property bool hasGPS: (SensorBridge && typeof SensorBridge.hasGpsFix !== "undefined") ? SensorBridge.hasGpsFix : false
-    property int gpsSatellites: (SensorBridge && typeof SensorBridge.gpsSatellites !== "undefined") ? SensorBridge.gpsSatellites : 0
+    property bool hasGPS: (SensorBridge && typeof SensorBridge.hasGpsFix !== "undefined") ? SensorBridge.hasGpsFix : true
+    property int gpsSatellites: (SensorBridge && typeof SensorBridge.gpsSatellites !== "undefined") ? SensorBridge.gpsSatellites : 6
     property bool hasMesh: (MeshBridge && typeof MeshBridge.isConnected !== "undefined") ? MeshBridge.isConnected : false
+    property int signalStrength: -85  // dBm
+
+    // GPS coordinates (mock for now)
+    property real gpsLatitude: 34.05
+    property real gpsLongitude: -118.24
+    property int gpsAltitude: 420
 
     function getTemperatureValue() {
         if (SensorBridge && typeof SensorBridge.temperatureCelsius !== "undefined" && SensorBridge.temperatureCelsius !== null) {
             return SensorBridge.temperatureCelsius
         }
-        // Return mock value for testing when backend not available
         return 22
     }
 
@@ -40,91 +47,148 @@ Rectangle {
     property string currentTime: Qt.formatTime(new Date(), "HH:mm")
     property string currentDate: Qt.formatDate(new Date(), "ddd, MMM d")
 
-    RowLayout {
+    // Format GPS coordinates
+    function formatGPS() {
+        var latDir = gpsLatitude >= 0 ? "N" : "S"
+        var lonDir = gpsLongitude >= 0 ? "E" : "W"
+        return "GPS: " + Math.abs(gpsLatitude).toFixed(2) + latDir + ", " + Math.abs(gpsLongitude).toFixed(2) + lonDir + " (" + gpsAltitude + "m)"
+    }
+
+    // Border at bottom
+    Rectangle {
+        anchors.bottom: parent.bottom
+        width: parent.width
+        height: 1
+        color: Core.Theme.divider
+    }
+
+    Column {
         anchors.fill: parent
         anchors.leftMargin: Core.Theme.spacingMedium
         anchors.rightMargin: Core.Theme.spacingMedium
-        spacing: Core.Theme.spacingMedium
+        anchors.topMargin: Core.Theme.spacingMedium
+        anchors.bottomMargin: Core.Theme.spacingSmall
+        spacing: 4
 
-        // Left section: Battery
-        Row {
-            spacing: 4
-            Layout.alignment: Qt.AlignVCenter
+        // Top row: Time | Battery & Signal
+        RowLayout {
+            width: parent.width
+            spacing: Core.Theme.spacingMedium
 
-            Text {
-                text: getBatteryIcon(batteryLevel, isCharging)
-                font.pixelSize: 18
-                anchors.verticalCenter: parent.verticalCenter
+            // Time (left side, prominent)
+            Row {
+                spacing: 6
+                Layout.alignment: Qt.AlignVCenter
+
+                Components.MaterialIcon {
+                    name: "schedule"
+                    size: 14
+                    iconColor: Core.Theme.primary
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                Text {
+                    text: currentTime
+                    color: Core.Theme.textPrimary
+                    font.pixelSize: 21
+                    font.weight: Font.Bold
+                    font.letterSpacing: Core.Theme.letterSpacingWide
+                    font.family: Core.Theme.fontFamily
+                }
             }
 
-            Text {
-                text: batteryLevel + "%"
-                color: batteryLevel < 20 ? Core.Theme.error : Core.Theme.textPrimary
-                font.pixelSize: Core.Theme.bodySize
-                font.weight: Font.Medium
-                anchors.verticalCenter: parent.verticalCenter
+            Item { Layout.fillWidth: true }
+
+            // Battery & Signal (right side)
+            Row {
+                spacing: Core.Theme.spacingMedium
+                Layout.alignment: Qt.AlignVCenter
+
+                // Battery
+                Row {
+                    spacing: 4
+
+                    Components.MaterialIcon {
+                        name: "battery_5_bar"
+                        size: 14
+                        iconColor: Core.Theme.textSecondary
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    Text {
+                        text: batteryLevel + "%"
+                        color: Core.Theme.textSecondary
+                        font.pixelSize: Core.Theme.bodySmallSize
+                        font.weight: Font.Bold
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
+
+                // Signal strength
+                Row {
+                    spacing: 4
+
+                    Components.MaterialIcon {
+                        name: "signal_cellular_alt"
+                        size: 14
+                        iconColor: Core.Theme.textSecondary
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    Text {
+                        text: signalStrength + "dBm"
+                        color: Core.Theme.textSecondary
+                        font.pixelSize: Core.Theme.bodySmallSize
+                        font.weight: Font.Bold
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
             }
         }
 
-        // Time
-        Text {
-            id: timeText
-            text: currentTime
-            color: Core.Theme.textPrimary
-            font.pixelSize: 18
-            font.weight: Font.Bold
-            Layout.alignment: Qt.AlignVCenter
-        }
+        // Bottom row: GPS coordinates | Status dots
+        RowLayout {
+            width: parent.width
+            spacing: Core.Theme.spacingSmall
 
-        // Temperature
-        Row {
-            spacing: 4
-            visible: temperature !== null && typeof temperature !== "undefined"
-            Layout.alignment: Qt.AlignVCenter
-
+            // GPS coordinates (left, monospace style)
             Text {
-                text: "🌡️"
-                font.pixelSize: 16
-                anchors.verticalCenter: parent.verticalCenter
+                text: formatGPS()
+                color: Core.Theme.textSecondary
+                font.pixelSize: Core.Theme.tinySize
+                font.family: Core.Theme.fontFamilyMono
+                font.letterSpacing: Core.Theme.letterSpacingMono
+                textFormat: Text.PlainText
             }
 
-            Text {
-                text: (temperature !== null && typeof temperature !== "undefined") ? (temperature + "°C") : ""
-                color: getTemperatureColor(temperature)
-                font.pixelSize: Core.Theme.bodySize
-                anchors.verticalCenter: parent.verticalCenter
-            }
-        }
+            Item { Layout.fillWidth: true }
 
-        Item { Layout.fillWidth: true }  // Spacer
+            // Status indicator dots (right)
+            Row {
+                spacing: 4
 
-        // Right section: Connectivity indicators
-        Row {
-            spacing: 12
-            Layout.alignment: Qt.AlignVCenter
+                // Active status dot (pulsing)
+                Rectangle {
+                    width: 8
+                    height: 8
+                    radius: 4
+                    color: Core.Theme.primary
 
-            Core.StatusIndicator {
-                icon: "📶"
-                active: hasLTE
-                tooltip: "Cellular"
-            }
+                    SequentialAnimation on opacity {
+                        loops: Animation.Infinite
+                        running: true
+                        NumberAnimation { to: 0.4; duration: 500 }
+                        NumberAnimation { to: 1.0; duration: 500 }
+                    }
+                }
 
-            Core.StatusIndicator {
-                icon: hasWiFi ? "📡" : "📡"
-                active: hasWiFi
-                tooltip: hasWiFi ? "Connected" : "Offline"
-            }
-
-            Core.StatusIndicator {
-                icon: "🛰"
-                active: hasGPS
-                tooltip: hasGPS ? gpsSatellites + " satellites" : "No GPS fix"
-            }
-
-            Core.StatusIndicator {
-                icon: "📻"
-                active: hasMesh
-                tooltip: hasMesh ? "Mesh connected" : "Mesh offline"
+                // Secondary status dot
+                Rectangle {
+                    width: 8
+                    height: 8
+                    radius: 4
+                    color: Core.Theme.divider
+                }
             }
         }
     }
@@ -173,7 +237,7 @@ Rectangle {
                 color: Core.Theme.textSecondary
                 font.pixelSize: Core.Theme.labelSize
                 font.weight: Font.Bold
-                font.letterSpacing: 1
+                font.letterSpacing: Core.Theme.letterSpacingNormal
             }
 
             // Battery details
@@ -208,7 +272,7 @@ Rectangle {
                 color: Core.Theme.textSecondary
                 font.pixelSize: Core.Theme.labelSize
                 font.weight: Font.Bold
-                font.letterSpacing: 1
+                font.letterSpacing: Core.Theme.letterSpacingNormal
             }
 
             StatusRow {
@@ -270,11 +334,12 @@ Rectangle {
 
     // Helper functions
     function getBatteryIcon(level, charging) {
-        if (charging) return "🔌"
-        if (level > 80) return "🔋"
-        if (level > 50) return "🔋"
-        if (level > 20) return "🪫"
-        return "🪫"
+        if (charging) return "battery_charging_full"
+        if (level > 80) return "battery_5_bar"
+        if (level > 60) return "battery_4_bar"
+        if (level > 40) return "battery_3_bar"
+        if (level > 20) return "battery_2_bar"
+        return "battery_1_bar"
     }
 
     function getTemperatureColor(temp) {

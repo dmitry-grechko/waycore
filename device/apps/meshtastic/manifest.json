@@ -3,7 +3,7 @@
   "name": "Mesh",
   "version": "1.0.0",
   "description": "Meshtastic mesh network chat and node management",
-  "icon": "📡",
+  "icon": "radio",
   "category": "communication",
   "entry": {
     "qml": "qml/MeshMain.qml"

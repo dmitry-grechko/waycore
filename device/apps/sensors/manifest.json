@@ -3,7 +3,7 @@
   "name": "Modules",
   "version": "1.0.0",
   "description": "Hardware modules and sensor monitoring",
-  "icon": "📊",
+  "icon": "analytics",
   "category": "sensors",
   "entry": {
     "qml": "qml/SensorsMain.qml"

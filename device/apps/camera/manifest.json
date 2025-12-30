@@ -3,7 +3,7 @@
   "name": "Camera",
   "version": "1.0.0",
   "description": "Camera capture and photo management",
-  "icon": "📷",
+  "icon": "photo_camera",
   "category": "media",
   "entry": {
     "qml": "qml/CameraMain.qml"

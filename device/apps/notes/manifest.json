@@ -3,7 +3,7 @@
   "name": "Notes",
   "version": "1.0.0",
   "description": "Create and manage text notes with markdown formatting",
-  "icon": "📝",
+  "icon": "edit_note",
   "category": "utilities",
   "entry": {
     "qml": "qml/NotesMain.qml"

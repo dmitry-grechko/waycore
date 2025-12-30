@@ -3,7 +3,7 @@
   "name": "Compass",
   "version": "1.0.0",
   "description": "Navigation compass with magnetic heading, GPS coordinates, and elevation display",
-  "icon": "🧭",
+  "icon": "explore",
   "category": "navigation",
   "entry": {
     "qml": "qml/CompassMain.qml"

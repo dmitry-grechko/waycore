@@ -15,14 +15,14 @@ Apps can access backend functionality through:
 
 Core bridges are automatically available to all QML apps:
 
-| Bridge | Purpose | Context Property |
-|--------|---------|-----------------|
-| SensorBridge | Sensor data access | `SensorBridge` |
-| NotesBridge | Note storage | `NotesBridge` |
-| MeshBridge | Mesh network | `MeshBridge` |
-| CameraBridge | Camera capture | `CameraBridge` |
-| AIBridge | AI inference | `AIBridge` |
-| AppBridge | App registry | `AppBridge` |
+| Bridge       | Purpose            | Context Property |
+| ------------ | ------------------ | ---------------- |
+| SensorBridge | Sensor data access | `SensorBridge`   |
+| NotesBridge  | Note storage       | `NotesBridge`    |
+| MeshBridge   | Mesh network       | `MeshBridge`     |
+| CameraBridge | Camera capture     | `CameraBridge`   |
+| AIBridge     | AI inference       | `AIBridge`       |
+| AppBridge    | App registry       | `AppBridge`      |
 
 ### Using Core Bridges in QML
 
@@ -67,15 +67,15 @@ if sensor_api.is_available("magnetometer"):
 
 ### Available Sensors
 
-| Sensor | Properties |
-|--------|------------|
-| `magnetometer` | heading, cardinal, calibrated |
-| `gps` | latitude, longitude, accuracy, fix |
-| `barometer` | pressure, elevation |
-| `temperature` | celsius, fahrenheit |
-| `humidity` | percentage |
-| `accelerometer` | x, y, z |
-| `light` | lux |
+| Sensor          | Properties                         |
+| --------------- | ---------------------------------- |
+| `magnetometer`  | heading, cardinal, calibrated      |
+| `gps`           | latitude, longitude, accuracy, fix |
+| `barometer`     | pressure, elevation                |
+| `temperature`   | celsius, fahrenheit                |
+| `humidity`      | percentage                         |
+| `accelerometer` | x, y, z                            |
+| `light`         | lux                                |
 
 ### Subscription Reference Counting
 
@@ -223,7 +223,8 @@ if bridge:
 
 ### 1. Use Core Services
 
-Don't create new database connections or clients. Use the core services registry:
+Don't create new database connections or clients. Use the core services
+registry:
 
 ```python
 # Good

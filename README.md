@@ -12,9 +12,18 @@
   <a href="docs/vision.md">Vision</a> •
   <a href="docs/overview.md">Overview</a> •
   <a href="docs/architecture/architecture.md">Architecture</a> •
+  <a href="#screenshots">Screenshots</a> •
   <a href="progress/SUMMARY.md">Progress</a> •
   <a href="docs/local_dev_docker.md">Development</a> •
   <a href="CONTRIBUTING.md">Contributing</a>
+</p>
+
+---
+
+<p align="center" id="screenshots">
+  <img src="assets/screenshots/screenshot-1.png" alt="Home Screen" width="250">
+  <img src="assets/screenshots/screenshot-2.png" alt="AI Assistant" width="250">
+  <img src="assets/screenshots/screenshot-3.png" alt="Meshtastic Chat" width="250">
 </p>
 
 ---
@@ -39,43 +48,43 @@ when the UI is busy or rebooting.
 
 ### Core Documentation
 
-| Document                                                       | Description                                                   |
-| -------------------------------------------------------------- | ------------------------------------------------------------- |
-| [Vision](docs/vision.md)                                       | Full aspirational scope and long-term direction               |
-| [Overview](docs/overview.md)                                   | Project scope, architecture decisions, and MVP definition     |
-| [Architecture](docs/architecture/architecture.md)              | Detailed software architecture, services, APIs, and standards |
-| [API Reference](docs/api/)                                     | Auto-generated OpenAPI specifications for all services        |
-| [Database Schema](docs/database-schema.md)                     | Database structure, tables, and data models                   |
-| [AI Model Guide](docs/models/README.md)                        | Model management, uploads, and supported formats              |
-| [Knowledge Base](docs/knowledge-base.md)                       | RAG knowledge base for AI-powered outdoor assistance          |
-| [Progress](progress/SUMMARY.md)                                | Current implementation status and task tracking               |
+| Document                                          | Description                                                   |
+| ------------------------------------------------- | ------------------------------------------------------------- |
+| [Vision](docs/vision.md)                          | Full aspirational scope and long-term direction               |
+| [Overview](docs/overview.md)                      | Project scope, architecture decisions, and MVP definition     |
+| [Architecture](docs/architecture/architecture.md) | Detailed software architecture, services, APIs, and standards |
+| [API Reference](docs/api/)                        | Auto-generated OpenAPI specifications for all services        |
+| [Database Schema](docs/database-schema.md)        | Database structure, tables, and data models                   |
+| [AI Model Guide](docs/models/README.md)           | Model management, uploads, and supported formats              |
+| [Knowledge Base](docs/knowledge-base.md)          | RAG knowledge base for AI-powered outdoor assistance          |
+| [Progress](progress/SUMMARY.md)                   | Current implementation status and task tracking               |
 
 ### Developer Guides
 
-| Document                                                       | Description                                                   |
-| -------------------------------------------------------------- | ------------------------------------------------------------- |
-| [App Development Guide](docs/developer/app-development-guide.md) | Complete guide to building Waycore apps                     |
-| [App Manifest Schema](docs/developer/app-manifest.md)          | Manifest configuration and validation reference               |
-| [App Backend Integration](docs/developer/app-backend.md)       | Building Python backend services for apps                     |
-| [UI Components](docs/developer/ui-components.md)               | Core UI component library and theme system                    |
-| [Local Development](docs/local_dev_docker.md)                  | Docker-based development setup and workflows                  |
-| [IPC Guide](local_plan/12-ipc-implementation-guide.md.md)      | Inter-process communication strategy                          |
+| Document                                                         | Description                                     |
+| ---------------------------------------------------------------- | ----------------------------------------------- |
+| [App Development Guide](docs/developer/app-development-guide.md) | Complete guide to building Waycore apps         |
+| [App Manifest Schema](docs/developer/app-manifest.md)            | Manifest configuration and validation reference |
+| [App Backend Integration](docs/developer/app-backend.md)         | Building Python backend services for apps       |
+| [UI Components](docs/developer/ui-components.md)                 | Core UI component library and theme system      |
+| [Local Development](docs/local_dev_docker.md)                    | Docker-based development setup and workflows    |
+| [IPC Guide](local_plan/12-ipc-implementation-guide.md.md)        | Inter-process communication strategy            |
 
 ### User Manual
 
-| Document                                                       | Description                                                   |
-| -------------------------------------------------------------- | ------------------------------------------------------------- |
-| [User Manual](docs/manual/README.md)                           | Complete user documentation and app guides                    |
-| [Getting Started](docs/manual/getting-started.md)              | First-time setup and home screen overview                     |
-| [AI Assistant](docs/manual/apps/ai-assistant.md)               | Using the AI for outdoor knowledge and image analysis         |
-| [Troubleshooting](docs/manual/reference/troubleshooting.md)    | Common issues and solutions                                   |
+| Document                                                    | Description                                           |
+| ----------------------------------------------------------- | ----------------------------------------------------- |
+| [User Manual](docs/manual/README.md)                        | Complete user documentation and app guides            |
+| [Getting Started](docs/manual/getting-started.md)           | First-time setup and home screen overview             |
+| [AI Assistant](docs/manual/apps/ai-assistant.md)            | Using the AI for outdoor knowledge and image analysis |
+| [Troubleshooting](docs/manual/reference/troubleshooting.md) | Common issues and solutions                           |
 
 ### Legal
 
-| Document                                                       | Description                                                   |
-| -------------------------------------------------------------- | ------------------------------------------------------------- |
-| [AI Disclaimer](docs/legal/ai-disclaimer.md)                   | Important AI limitations and safety information               |
-| [Third-Party Attributions](docs/legal/third-party-attributions.md) | Licenses and attributions for dependencies and data sources  |
+| Document                                                           | Description                                                 |
+| ------------------------------------------------------------------ | ----------------------------------------------------------- |
+| [AI Disclaimer](docs/legal/ai-disclaimer.md)                       | Important AI limitations and safety information             |
+| [Third-Party Attributions](docs/legal/third-party-attributions.md) | Licenses and attributions for dependencies and data sources |
 
 ## Quick Start
 

@@ -4,19 +4,56 @@ import ".." as Core
 Item {
     id: indicator
 
+    // Primary properties
+    property string status: "inactive"  // active | inactive | success | warning | error
+    property int size: Core.Theme.iconSizeMedium
+
+    // Legacy properties for backward compatibility
     property string icon: ""
-    property bool active: false
+    property bool active: status === "active" || status === "success"
     property string tooltip: ""
     property color activeColor: Core.Theme.textPrimary
     property color inactiveColor: Core.Theme.textDisabled
 
-    width: Core.Theme.iconSizeMedium
-    height: Core.Theme.iconSizeMedium
+    width: size
+    height: size
 
+    // Determine color based on status
+    readonly property color statusColor: {
+        switch(status) {
+            case "active": return Core.Theme.success
+            case "success": return Core.Theme.success
+            case "warning": return Core.Theme.warning
+            case "error": return Core.Theme.error
+            default: return Core.Theme.textSecondary
+        }
+    }
+
+    // Simple dot indicator (when no icon is set)
+    Rectangle {
+        visible: indicator.icon === ""
+        anchors.centerIn: parent
+        width: indicator.size
+        height: indicator.size
+        radius: indicator.size / 2
+        color: indicator.statusColor
+        opacity: indicator.status === "inactive" ? 0.4 : 1.0
+
+        // Pulse animation for active status
+        SequentialAnimation on opacity {
+            running: indicator.status === "active"
+            loops: Animation.Infinite
+            NumberAnimation { to: 0.4; duration: 1000 }
+            NumberAnimation { to: 1.0; duration: 1000 }
+        }
+    }
+
+    // Icon indicator (when icon is set)
     Text {
+        visible: indicator.icon !== ""
         anchors.centerIn: parent
         text: indicator.icon
-        font.pixelSize: Core.Theme.iconSizeMedium - 4
+        font.pixelSize: indicator.size - 4
         opacity: indicator.active ? 1.0 : 0.3
         color: indicator.active ? indicator.activeColor : indicator.inactiveColor
 
